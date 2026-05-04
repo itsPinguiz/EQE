@@ -2,7 +2,8 @@
 .venv/*
 checkpoints/*
 results/*
-__pycache__/*
+__pycache__/
+*.pyc
 
 # ...But force Git to track the hidden .gitkeep files
 !.venv/.gitkeep

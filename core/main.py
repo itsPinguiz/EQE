@@ -116,5 +116,27 @@ def main() -> None:
     print("=" * 60 + "\n")
 
 
+import sys
+from pathlib import Path
+
+# Aggiunge la cartella principale del progetto al path di Python
+# Questo risolve il fastidioso errore "ModuleNotFoundError: No module named 'core'"
+sys.path.append(str(Path(__file__).parent.parent))
+
+from core.test_framework import ExperimentOrchestrator
+from core.utility.log import ExperimentLogger
+
+# Inizializziamo il logger anche nel main
+logger = ExperimentLogger.get_logger("Main")
+
 if __name__ == "__main__":
-    main()
+    try:
+        # Scegli il dataset da testare: "breast_cancer" oppure "adult"
+        dataset_scelto = "breast_cancer"
+        
+        # Inizializza ed esegui l'orchestratore
+        orchestrator = ExperimentOrchestrator(dataset_name=dataset_scelto)
+        orchestrator.run_experiment()
+        
+    except Exception as e:
+        logger.critical(f"Errore fatale durante l'esecuzione: {e}", exc_info=True)
