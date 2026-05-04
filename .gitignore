@@ -1,4 +1,10 @@
-.venv/
-checkpoints/
-results/
-__pycache__/
+# Ignore everything inside these folders...
+.venv/*
+checkpoints/*
+results/*
+__pycache__/*
+
+# ...But force Git to track the hidden .gitkeep files
+!.venv/.gitkeep
+!checkpoints/.gitkeep
+!results/.gitkeep
