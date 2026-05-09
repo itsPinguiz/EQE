@@ -9,9 +9,9 @@ Theoretical Background
 Standard local explainability metrics (e.g., SHAP local accuracy) assume
 that *all* features are available. In practice, human working memory is
 bounded (Miller's Law: ~7 ± 2 items). This module operationalises a
-cognitive limit K, measuring how faithfully an explanation mimics the
-black-box model when the explanation is **strictly truncated** to the top-K
-most important features.
+cognitive limit K, measuring the mathematical robustness of the explanation
+(Complexity-Calibrated Local Concordance) when the explanation is 
+**strictly truncated** to the top-K most important features.
 
 Formal Definition
 -----------------
@@ -167,7 +167,18 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         ValueError
             If ``k_features`` exceeds the number of features in ``weights``.
         """
-        raise NotImplementedError
+        if self.k_features > weights.shape[1]:
+            raise ValueError(f"k_features ({self.k_features}) is greater than the number of features ({weights.shape[1]}).")
+
+        # 1 & 2: Identify and truncate the feature weights (S_K)
+        weights_truncated = self._truncate_weights(weights)
+
+        # 3: Calculate the truncated local prediction: g_K(x) = w_0 + sum(w_i * x_i)
+        g_K = intercepts + np.sum(weights_truncated * X, axis=1)
+
+        # 4: Return the Mean Squared Error (MSE)
+        mse = np.mean((f_proba - g_K) ** 2)
+        return float(mse)
 
     def _truncate_weights(
         self,
@@ -189,7 +200,19 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         np.ndarray of shape (n_samples, n_features)
             Weight matrix with all but the top-K entries zeroed out per row.
         """
-        raise NotImplementedError
+        truncated = np.copy(weights)
+        
+        # Sort the weight indices in descending order based on their absolute values
+        sorted_indices = np.argsort(-np.abs(truncated), axis=1)
+        
+        # Extract the indices of the features that fall outside the cognitive window K
+        indices_to_zero = sorted_indices[:, self.k_features:]
+        
+        # Zero out the weights of these less important features
+        row_indices = np.arange(weights.shape[0])[:, None]
+        truncated[row_indices, indices_to_zero] = 0.0
+        
+        return truncated
 
     def __repr__(self) -> str:
         return f"ComplexityCalibratedConcordance(k_features={self.k_features})"

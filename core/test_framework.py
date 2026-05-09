@@ -55,7 +55,7 @@ class ExperimentOrchestrator:
 
     def run_experiment(self) -> None:
         """Executes the full experimental pipeline."""
-        logger.info(f"NIZIO ESPERIMENTO: Limite Cognitivo K={self.k_features}")
+        logger.info(f"INIZIO ESPERIMENTO: Limite Cognitivo K={self.k_features}")
         self._load_dataset()
         self._train_models()
         self._generate_explanations()
