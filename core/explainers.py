@@ -44,7 +44,7 @@ class BaseExplainer(ABC):
         intercepts : np.ndarray of shape (n_samples,)
             The base predictive value (w_0) for each instance before adding feature contributions.
         """
-        pass
+        raise NotImplementedError("Subclasses must implement the explain method.")
 
 
 class ShapExplainer(BaseExplainer):
@@ -82,15 +82,42 @@ class ShapExplainer(BaseExplainer):
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         # Calculate SHAP values (feature attributions)
         shap_out = self.explainer.shap_values(X)
-        weights = np.array(shap_out)
+        weights = self._normalize_shap_values(shap_out)
         
         # In SHAP, the intercept is the 'expected_value' across the background dataset.
-        base_value = float(self.explainer.expected_value)
+        base_value = self._normalize_expected_value(self.explainer.expected_value)
         
         # Replicate the base_value for all test instances
         intercepts = np.full(X.shape[0], base_value)
         
         return weights, intercepts
+
+    def _normalize_shap_values(
+        self,
+        shap_values: npt.NDArray[np.float64] | list[npt.NDArray[np.float64]],
+    ) -> npt.NDArray[np.float64]:
+        if isinstance(shap_values, list):
+            if len(shap_values) < 2:
+                raise ValueError("SHAP values list is empty or has only one class.")
+            values = shap_values[1]
+        else:
+            values = np.asarray(shap_values)
+            if values.ndim == 3:
+                if values.shape[0] < 2:
+                    raise ValueError("SHAP values array has only one class.")
+                values = values[1]
+
+        if values.ndim != 2:
+            raise ValueError("SHAP values must have shape (n_samples, n_features).")
+
+        return np.asarray(values, dtype=float)
+
+    def _normalize_expected_value(self, expected_value) -> float:
+        if isinstance(expected_value, (list, tuple, np.ndarray)):
+            if len(expected_value) < 2:
+                raise ValueError("SHAP expected_value has only one class.")
+            return float(expected_value[1])
+        return float(expected_value)
 
 
 class LimeTabularExplainerWrapper(BaseExplainer):

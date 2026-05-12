@@ -17,6 +17,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+import pandas as pd
+
 # Permette di eseguire anche: `python core/main.py`
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -98,13 +101,22 @@ def _normalize_explainers(explainers_cfg: Any) -> tuple[list[str] | None, int | 
     return names, background_size, background_strategy
 
 
+def _format_markdown_value(value: Any) -> str:
+    if isinstance(value, (float, np.floating)):
+        return f"{value:.6f}"
+    return str(value)
+
+
 def _render_markdown_table(df) -> str:
     headers = list(df.columns)
     rows = df.values.tolist()
 
     header_row = "| " + " | ".join(headers) + " |"
     separator_row = "| " + " | ".join(["---"] * len(headers)) + " |"
-    data_rows = ["| " + " | ".join(map(str, row)) + " |" for row in rows]
+    data_rows = [
+        "| " + " | ".join(_format_markdown_value(cell) for cell in row) + " |"
+        for row in rows
+    ]
 
     return "\n".join([header_row, separator_row, *data_rows])
 
@@ -120,6 +132,28 @@ def _render_markdown_report(df, metadata: dict[str, Any], include_header: bool) 
 
     lines.extend(["", "## Results", "", table])
     return "\n".join(lines)
+
+
+def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
+    suite = experiment.get("suite")
+    if suite:
+        datasets = suite.get("datasets") or []
+        k_values = suite.get("k_features") or suite.get("k") or []
+        if not datasets or not k_values:
+            raise ValueError("experiment.suite richiede 'datasets' e 'k_features'.")
+
+        runs = []
+        for dataset in datasets:
+            for k_features in k_values:
+                runs.append({"dataset": dataset, "k_features": k_features})
+        return runs
+
+    return [
+        {
+            "dataset": experiment.get("dataset", "breast_cancer"),
+            "k_features": experiment.get("k_features", experiment.get("k", 4)),
+        }
+    ]
 
 
 def main() -> None:
@@ -141,22 +175,28 @@ def main() -> None:
         explainers_cfg
     )
 
-    orchestrator = ExperimentOrchestrator(
-        dataset_name=experiment.get("dataset", "breast_cancer"),
-        k_features=experiment.get("k_features", experiment.get("k", 4)),
-        test_size=experiment.get("test_size", 0.2),
-        random_state=experiment.get("random_state", experiment.get("seed", 42)),
-        n_explain=experiment.get("n_explain"),
-        models=models,
-        model_params=model_params,
-        explainers=explainers,
-        metrics=config.get("metrics"),
-        shap_background_size=shap_background_size,
-        shap_background_strategy=shap_background_strategy,
-        verbose=experiment.get("verbose", True),
-    )
+    runs = _build_run_matrix(experiment)
+    all_results = []
 
-    results = orchestrator.run_experiment()
+    for run in runs:
+        orchestrator = ExperimentOrchestrator(
+            dataset_name=run["dataset"],
+            k_features=run["k_features"],
+            test_size=experiment.get("test_size", 0.2),
+            random_state=experiment.get("random_state", experiment.get("seed", 42)),
+            n_explain=experiment.get("n_explain"),
+            models=models,
+            model_params=model_params,
+            explainers=explainers,
+            metrics=config.get("metrics"),
+            shap_background_size=shap_background_size,
+            shap_background_strategy=shap_background_strategy,
+            verbose=experiment.get("verbose", True),
+        )
+
+        all_results.append(orchestrator.run_experiment())
+
+    results = pd.concat(all_results, ignore_index=True)
 
     print("\n" + "=" * 60)
     print("  Complexity-Calibrated Local Concordance — Results")
@@ -172,15 +212,21 @@ def main() -> None:
     include_header = results_cfg.get("include_header", True)
 
     output_path = results_dir / f"{prefix}_{timestamp}.md"
+    suite = experiment.get("suite")
     metadata = {
-        "dataset": experiment.get("dataset", "breast_cancer"),
-        "k_features": experiment.get("k_features", experiment.get("k", 4)),
         "n_explain": experiment.get("n_explain"),
         "models": ", ".join(models or ["xgboost", "neuralnetwork"]),
         "explainers": ", ".join(explainers or ["lime", "shap"]),
         "metrics": ", ".join(config.get("metrics", ["ccc_mse"])),
         "timestamp": timestamp,
+        "runs": len(runs),
     }
+    if suite:
+        metadata["datasets"] = ", ".join(suite.get("datasets", []))
+        metadata["k_features"] = ", ".join(str(v) for v in suite.get("k_features", []))
+    else:
+        metadata["dataset"] = experiment.get("dataset", "breast_cancer")
+        metadata["k_features"] = experiment.get("k_features", experiment.get("k", 4))
     output_path.write_text(
         _render_markdown_report(results, metadata, include_header),
         encoding="utf-8",

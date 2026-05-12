@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Tuple, List
+from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from pathlib import Path
@@ -39,38 +40,53 @@ class BaseDataLoader(ABC):
 class BreastCancerLoader(BaseDataLoader):
     def load_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         path = Path("datasets/BSWD/wdbc.data")
-        if not path.exists():
-            logger.error(f"File non trovato: {path}")
-            raise FileNotFoundError(f"Assicurati che il file esista in {path}")
-            
-        df = pd.read_csv(path, header=None)
-        df = df.drop(0, axis=1) # Rimuovi ID
-        
-        # M (Malignant) -> 1, B (Benign) -> 0
-        y = df[1].map({'M': 1, 'B': 0}).values
-        X_df = df.drop(1, axis=1)
-        
-        self.feature_names = [f"feature_{i}" for i in range(1, 31)]
-        X = X_df.values
-        
+        if path.exists():
+            df = pd.read_csv(path, header=None)
+            df = df.drop(0, axis=1) # Rimuovi ID
+
+            # M (Malignant) -> 1, B (Benign) -> 0
+            y = df[1].map({'M': 1, 'B': 0}).values
+            X_df = df.drop(1, axis=1)
+
+            self.feature_names = [f"feature_{i}" for i in range(1, 31)]
+            X = X_df.values
+        else:
+            logger.warning(
+                f"File non trovato: {path}. Uso sklearn.datasets.load_breast_cancer()"
+            )
+            dataset = load_breast_cancer(as_frame=True)
+            X_df = dataset.data
+            y = dataset.target.values
+            self.feature_names = dataset.feature_names.tolist()
+            X = X_df.values
+
         return self._split_and_scale(X, y)
 
 class AdultIncomeLoader(BaseDataLoader):
     def load_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        path = Path("datasets/adult/adult.data")
-        if not path.exists():
-            logger.error(f"File non trovato: {path}")
-            raise FileNotFoundError(f"Assicurati che il file esista in {path}")
+        data_path = Path("datasets/adult/adult.data")
+        test_path = Path("datasets/adult/adult.test")
+
+        if not data_path.exists() and not test_path.exists():
+            logger.error("File non trovati: datasets/adult/adult.data o datasets/adult/adult.test")
+            raise FileNotFoundError(
+                "Assicurati che esista almeno uno tra datasets/adult/adult.data o datasets/adult/adult.test"
+            )
             
         columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 
                    'marital-status', 'occupation', 'relationship', 'race', 'sex', 
                    'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'income']
         
-        df = pd.read_csv(path, header=None, names=columns, na_values=" ?")
-        df = df.dropna()
+        frames = []
+        if data_path.exists():
+            frames.append(self._read_adult_file(data_path, columns))
+        if test_path.exists():
+            frames.append(self._read_adult_file(test_path, columns, skip_header=True))
+
+        df = pd.concat(frames, ignore_index=True).dropna()
         
         # >50K -> 1, <=50K -> 0
-        y = (df['income'].str.strip() == '>50K').astype(int).values
+        y = (df['income'].str.strip().str.replace('.', '', regex=False) == '>50K').astype(int).values
         X_df = df.drop('income', axis=1)
         
         X_df = pd.get_dummies(X_df, drop_first=True)
@@ -78,3 +94,17 @@ class AdultIncomeLoader(BaseDataLoader):
         X = X_df.values
         
         return self._split_and_scale(X, y)
+
+    def _read_adult_file(
+        self,
+        path: Path,
+        columns: list[str],
+        skip_header: bool = False,
+    ) -> pd.DataFrame:
+        return pd.read_csv(
+            path,
+            header=0 if skip_header else None,
+            names=columns,
+            na_values=" ?",
+            skipinitialspace=True,
+        )

@@ -92,7 +92,7 @@ class ExperimentOrchestrator:
             params = dict(self.model_params.get(model_key, {}))
             params.setdefault("random_state", self.random_state)
             model = model_cls(**params)
-            self.models[model_name] = model
+            self.models[model_key] = model
 
         for name, model in self.models.items():
             model.train(self.X_train, self.y_train)
