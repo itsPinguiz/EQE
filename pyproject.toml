@@ -21,6 +21,7 @@ dependencies = [
     "matplotlib>=3.9",
     "seaborn>=0.13",
     "ucimlrepo>=0.0.7",          # fetch UCI datasets programmatically
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]

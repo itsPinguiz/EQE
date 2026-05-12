@@ -25,11 +25,12 @@ class BlackBoxModel(ABC):
 
 
 class XGBoostModel(BlackBoxModel):
-    def __init__(self, random_state: int = 42):
+    def __init__(self, random_state: int = 42, **kwargs):
         # eval_metric='logloss' avoids warnings in newer XGBoost versions
         self.model = XGBClassifier(
-            eval_metric='logloss', 
-            random_state=random_state
+            eval_metric='logloss',
+            random_state=random_state,
+            **kwargs,
         )
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
@@ -43,12 +44,13 @@ class XGBoostModel(BlackBoxModel):
 
 
 class NeuralNetworkModel(BlackBoxModel):
-    def __init__(self, random_state: int = 42):
+    def __init__(self, random_state: int = 42, **kwargs):
         # A simple Multi-Layer Perceptron (2 hidden layers of 100 nodes)
         self.model = MLPClassifier(
-            hidden_layer_sizes=(100, 100), 
-            max_iter=500, 
-            random_state=random_state
+            hidden_layer_sizes=(100, 100),
+            max_iter=500,
+            random_state=random_state,
+            **kwargs,
         )
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray) -> None:

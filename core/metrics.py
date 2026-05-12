@@ -30,7 +30,7 @@ Complexity-Calibrated Local Concordance (mean over N test instances):
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Iterable
 
 import numpy as np
 import numpy.typing as npt
@@ -72,6 +72,12 @@ class EvaluationMetric(ABC):
         Should include the metric name and any relevant hyper-parameters
         (e.g., the value of K for :class:`ComplexityCalibratedConcordance`).
         """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Short identifier for the metric (used for registry/labels)."""
         raise NotImplementedError
 
 
@@ -216,3 +222,43 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
 
     def __repr__(self) -> str:
         return f"ComplexityCalibratedConcordance(k_features={self.k_features})"
+
+    @property
+    def name(self) -> str:
+        return "ccc_mse"
+
+
+METRIC_REGISTRY = {
+    "ccc_mse": ComplexityCalibratedConcordance,
+}
+
+
+def build_metrics(
+    metric_names: Iterable[str] | None,
+    *,
+    k_features: int,
+) -> list[EvaluationMetric]:
+    """Instantiate metrics from the registry.
+
+    Parameters
+    ----------
+    metric_names : Iterable[str] | None
+        Metric names to instantiate. If None, defaults to ["ccc_mse"].
+    k_features : int
+        Cognitive limit K, passed to metrics that need it.
+    """
+    names = list(metric_names) if metric_names is not None else ["ccc_mse"]
+    metrics: list[EvaluationMetric] = []
+
+    for name in names:
+        key = name.lower()
+        metric_cls = METRIC_REGISTRY.get(key)
+        if metric_cls is None:
+            raise ValueError(f"Metrica non supportata: {name}")
+
+        if key == "ccc_mse":
+            metrics.append(metric_cls(k_features=k_features))
+        else:
+            metrics.append(metric_cls())
+
+    return metrics

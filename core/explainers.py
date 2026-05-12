@@ -50,15 +50,33 @@ class BaseExplainer(ABC):
 class ShapExplainer(BaseExplainer):
     """Wrapper for SHAP (KernelExplainer mode)."""
     
-    def __init__(self, model: BlackBoxModel, background_data: npt.NDArray[np.float64]):
+    def __init__(
+        self,
+        model: BlackBoxModel,
+        background_data: npt.NDArray[np.float64],
+        background_size: int | None = 100,
+        background_strategy: str = "sample",
+    ):
         super().__init__(model)
         if shap is None:
             raise ImportError("Please install 'shap' library to use ShapExplainer.")
+
+        if background_size is not None and background_size < 1:
+            raise ValueError("background_size must be >= 1 or None.")
+
+        background = background_data
+        if background_size is not None and background_data.shape[0] > background_size:
+            if background_strategy == "kmeans":
+                background = shap.kmeans(background_data, background_size)
+            elif background_strategy == "sample":
+                background = shap.sample(background_data, background_size)
+            else:
+                raise ValueError("background_strategy must be 'sample' or 'kmeans'.")
             
         # We use KernelExplainer. We wrap the predict_proba to only return probabilities for class 1 (positive class).
         self.explainer = shap.KernelExplainer(
             lambda x: self.model.predict_proba(x)[:, 1], 
-            background_data
+            background
         )
         
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:

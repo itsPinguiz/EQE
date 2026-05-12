@@ -1,0 +1,26 @@
+experiment:
+  dataset: breast_cancer
+  k_features: 4
+  test_size: 0.2
+  random_state: 42
+  n_explain: null
+  verbose: true
+
+models:
+  - name: xgboost
+    params: {}
+  - name: neuralnetwork
+    params: {}
+
+explainers:
+  - name: lime
+  - name: shap
+    background_size: 100
+    background_strategy: sample
+
+metrics:
+  - ccc_mse
+
+results:
+  filename_prefix: results
+  include_header: true

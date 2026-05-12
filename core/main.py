@@ -12,7 +12,15 @@ or:
 from __future__ import annotations
 
 import argparse
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
+# Permette di eseguire anche: `python core/main.py`
+sys.path.append(str(Path(__file__).parent.parent))
+
+from core.config import DEFAULT_CONFIG_PATH, load_config
 from core.test_framework import ExperimentOrchestrator
 
 
@@ -24,13 +32,7 @@ def parse_args() -> argparse.Namespace:
     argparse.Namespace
         Parsed arguments with the following fields:
 
-        - ``dataset``    : str  — dataset identifier (default: "breast_cancer")
-        - ``k``          : int  — cognitive complexity limit K (default: 4)
-        - ``explainers`` : list[str] — explainer names (default: ["lime","shap"])
-        - ``n_explain``  : int  — number of test instances to explain (default: all)
-        - ``test_size``  : float — fraction used for testing (default: 0.2)
-        - ``seed``       : int  — random seed (default: 42)
-        - ``quiet``      : bool — suppress progress output (default: False)
+        - ``config`` : str — path to the YAML config file (default: config.yml)
     """
     parser = argparse.ArgumentParser(
         prog="EQE",
@@ -40,52 +42,84 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--dataset",
+        "--config",
         type=str,
-        default="breast_cancer",
-        choices=["adult", "breast_cancer", "diabetes", "german_credit"],
-        help="Dataset to use for the experiment (default: breast_cancer).",
-    )
-    parser.add_argument(
-        "--k",
-        type=int,
-        default=4,
-        metavar="K",
-        help="Cognitive complexity limit K: max features per explanation (default: 4).",
-    )
-    parser.add_argument(
-        "--explainers",
-        nargs="+",
-        default=["lime", "shap"],
-        choices=["lime", "shap", "maple", "l2x"],
-        help="Explainer(s) to benchmark (default: lime shap).",
-    )
-    parser.add_argument(
-        "--n-explain",
-        type=int,
-        default=None,
-        metavar="N",
-        help="Limit explanation generation to the first N test instances. "
-             "Omit to use the full test set.",
-    )
-    parser.add_argument(
-        "--test-size",
-        type=float,
-        default=0.2,
-        help="Fraction of data reserved for testing (default: 0.2).",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="Random seed for reproducibility (default: 42).",
-    )
-    parser.add_argument(
-        "--quiet",
-        action="store_true",
-        help="Suppress progress logging.",
+        default=str(DEFAULT_CONFIG_PATH),
+        help="Path to the YAML config file (default: config.yml).",
     )
     return parser.parse_args()
+
+
+def _normalize_models(models_cfg: Any) -> tuple[list[str] | None, dict[str, dict]]:
+    if not models_cfg:
+        return None, {}
+
+    names = []
+    params: dict[str, dict] = {}
+    for item in models_cfg:
+        if isinstance(item, str):
+            names.append(item)
+            continue
+        if isinstance(item, dict):
+            name = item.get("name")
+            if not name:
+                raise ValueError("Ogni modello deve avere un campo 'name'.")
+            names.append(name)
+            params[name.lower()] = item.get("params", {})
+            continue
+        raise ValueError("Modelli non validi nel config.yml.")
+
+    return names, params
+
+
+def _normalize_explainers(explainers_cfg: Any) -> tuple[list[str] | None, int | None, str]:
+    if not explainers_cfg:
+        return None, 100, "sample"
+
+    names: list[str] = []
+    background_size = 100
+    background_strategy = "sample"
+
+    for item in explainers_cfg:
+        if isinstance(item, str):
+            names.append(item)
+            continue
+        if isinstance(item, dict):
+            name = item.get("name")
+            if not name:
+                raise ValueError("Ogni explainer deve avere un campo 'name'.")
+            names.append(name)
+            if name.lower() == "shap":
+                background_size = item.get("background_size", background_size)
+                background_strategy = item.get("background_strategy", background_strategy)
+            continue
+        raise ValueError("Explainer non validi nel config.yml.")
+
+    return names, background_size, background_strategy
+
+
+def _render_markdown_table(df) -> str:
+    headers = list(df.columns)
+    rows = df.values.tolist()
+
+    header_row = "| " + " | ".join(headers) + " |"
+    separator_row = "| " + " | ".join(["---"] * len(headers)) + " |"
+    data_rows = ["| " + " | ".join(map(str, row)) + " |" for row in rows]
+
+    return "\n".join([header_row, separator_row, *data_rows])
+
+
+def _render_markdown_report(df, metadata: dict[str, Any], include_header: bool) -> str:
+    table = _render_markdown_table(df)
+    if not include_header:
+        return table
+
+    lines = ["# EQE Results", "", "## Experiment", ""]
+    for key, value in metadata.items():
+        lines.append(f"- {key}: {value}")
+
+    lines.extend(["", "## Results", "", table])
+    return "\n".join(lines)
 
 
 def main() -> None:
@@ -96,15 +130,30 @@ def main() -> None:
     and prints the results table to stdout.
     """
     args = parse_args()
+    config = load_config(args.config)
+
+    experiment = config.get("experiment", {})
+    models_cfg = config.get("models", None)
+    explainers_cfg = config.get("explainers", None)
+
+    models, model_params = _normalize_models(models_cfg)
+    explainers, shap_background_size, shap_background_strategy = _normalize_explainers(
+        explainers_cfg
+    )
 
     orchestrator = ExperimentOrchestrator(
-        dataset_name=args.dataset,
-        k_features=args.k,
-        test_size=args.test_size,
-        random_state=args.seed,
-        n_explain=args.n_explain,
-        explainers=args.explainers,
-        verbose=not args.quiet,
+        dataset_name=experiment.get("dataset", "breast_cancer"),
+        k_features=experiment.get("k_features", experiment.get("k", 4)),
+        test_size=experiment.get("test_size", 0.2),
+        random_state=experiment.get("random_state", experiment.get("seed", 42)),
+        n_explain=experiment.get("n_explain"),
+        models=models,
+        model_params=model_params,
+        explainers=explainers,
+        metrics=config.get("metrics"),
+        shap_background_size=shap_background_size,
+        shap_background_strategy=shap_background_strategy,
+        verbose=experiment.get("verbose", True),
     )
 
     results = orchestrator.run_experiment()
@@ -115,28 +164,29 @@ def main() -> None:
     print(results.to_string(index=False))
     print("=" * 60 + "\n")
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    results_dir = Path("results")
+    results_dir.mkdir(parents=True, exist_ok=True)
+    results_cfg = config.get("results", {})
+    prefix = results_cfg.get("filename_prefix", "results")
+    include_header = results_cfg.get("include_header", True)
 
-import sys
-from pathlib import Path
+    output_path = results_dir / f"{prefix}_{timestamp}.md"
+    metadata = {
+        "dataset": experiment.get("dataset", "breast_cancer"),
+        "k_features": experiment.get("k_features", experiment.get("k", 4)),
+        "n_explain": experiment.get("n_explain"),
+        "models": ", ".join(models or ["xgboost", "neuralnetwork"]),
+        "explainers": ", ".join(explainers or ["lime", "shap"]),
+        "metrics": ", ".join(config.get("metrics", ["ccc_mse"])),
+        "timestamp": timestamp,
+    }
+    output_path.write_text(
+        _render_markdown_report(results, metadata, include_header),
+        encoding="utf-8",
+    )
+    print(f"Tabella salvata in: {output_path}")
 
-# Aggiunge la cartella principale del progetto al path di Python
-# Questo risolve il fastidioso errore "ModuleNotFoundError: No module named 'core'"
-sys.path.append(str(Path(__file__).parent.parent))
-
-from core.test_framework import ExperimentOrchestrator
-from core.utility.log import ExperimentLogger
-
-# Inizializziamo il logger anche nel main
-logger = ExperimentLogger.get_logger("Main")
 
 if __name__ == "__main__":
-    try:
-        # Scegli il dataset da testare: "breast_cancer" oppure "adult"
-        dataset_scelto = "breast_cancer"
-        
-        # Inizializza ed esegui l'orchestratore
-        orchestrator = ExperimentOrchestrator(dataset_name=dataset_scelto)
-        orchestrator.run_experiment()
-        
-    except Exception as e:
-        logger.critical(f"Errore fatale durante l'esecuzione: {e}", exc_info=True)
+    main()
