@@ -179,8 +179,10 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         # 1 & 2: Identify and truncate the feature weights (S_K)
         weights_truncated = self._truncate_weights(weights)
 
-        # 3: Calculate the truncated local prediction: g_K(x) = w_0 + sum(w_i * x_i)
-        g_K = intercepts + np.sum(weights_truncated * X, axis=1)
+        # 3: Calculate the truncated local prediction: g_K(x) = w_0 + sum(w_i)
+        # Note: SHAP values and LIME local coefficients are already the full attributions 
+        # for the specific instance. They should NOT be multiplied by the raw X values.
+        g_K = intercepts + np.sum(weights_truncated, axis=1)
 
         # 4: Return the Mean Squared Error (MSE)
         mse = np.mean((f_proba - g_K) ** 2)

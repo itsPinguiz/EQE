@@ -144,14 +144,14 @@ def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
 
         runs = []
         for dataset in datasets:
-            for k_features in k_values:
-                runs.append({"dataset": dataset, "k_features": k_features})
+            # Passiamo l'intera lista di k_values per dataset, invece che fare N cicli
+            runs.append({"dataset": dataset, "k_features": k_values})
         return runs
 
     return [
         {
             "dataset": experiment.get("dataset", "breast_cancer"),
-            "k_features": experiment.get("k_features", experiment.get("k", 4)),
+            "k_features": [experiment.get("k_features", experiment.get("k", 4))],
         }
     ]
 

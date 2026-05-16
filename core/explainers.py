@@ -73,11 +73,16 @@ class ShapExplainer(BaseExplainer):
             else:
                 raise ValueError("background_strategy must be 'sample' or 'kmeans'.")
             
-        # We use KernelExplainer. We wrap the predict_proba to only return probabilities for class 1 (positive class).
+        # We need a named instance method to allow ProcessPoolExecutor pickling
         self.explainer = shap.KernelExplainer(
-            lambda x: self.model.predict_proba(x)[:, 1], 
+            self._predict_proba_pos_class, 
             background
         )
+
+    def _predict_proba_pos_class(self, x):
+        """Wrapper method to return only positive class probabilities.
+        Implemented as an instance method to allow multiprocessing pickling."""
+        return self.model.predict_proba(x)[:, 1]
         
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         # Calculate SHAP values (feature attributions)

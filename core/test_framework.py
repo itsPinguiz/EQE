@@ -1,5 +1,10 @@
+import concurrent.futures
+import multiprocessing
+import concurrent.futures
+from joblib import Parallel, delayed
+import multiprocessing
 import logging
-from typing import Iterable
+from typing import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -28,7 +33,7 @@ class ExperimentOrchestrator:
     def __init__(
         self,
         dataset_name: str,
-        k_features: int = 4,
+        k_features: Sequence[int] | int = 4,
         test_size: float = 0.2,
         random_state: int = 42,
         n_explain: int | None = None,
@@ -41,7 +46,9 @@ class ExperimentOrchestrator:
         verbose: bool = True,
     ):
         self.dataset_name = dataset_name
-        self.k_features = k_features
+        # Accept a single K or a list of K values
+        self.k_features_list = [k_features] if isinstance(k_features, int) else list(k_features)
+        
         self.test_size = test_size
         self.random_state = random_state
         self.n_explain = n_explain
@@ -114,7 +121,7 @@ class ExperimentOrchestrator:
 
         # Backwards-compatible wrapper that uses the new split flow.
         explanations = self.generate_explanations(X_explain)
-        return self.compute_metrics(explanations, X_explain)
+        return self.compute_metrics(explanations, X_explain, current_k=self.k_features_list[-1])
 
     def _init_explainer(self, explainer_key: str, model):
         """Factory that initializes explainers with the correct arguments.
@@ -153,7 +160,7 @@ class ExperimentOrchestrator:
                 "f_proba": np.ndarray (n_samples,),
             }
         """
-        logger.info(f"Esecuzione Explainers con limite cognitivo K={self.k_features}...")
+        logger.info(f"Generating explanations in parallel (Caching)...")
 
         explanations: dict = {}
 
@@ -161,15 +168,30 @@ class ExperimentOrchestrator:
             try:
                 f_proba = model.predict_proba(X_explain)[:, 1]
             except Exception as exc:
-                logger.error(f"Errore nel calcolo delle probabilità per {model_name}: {exc}")
+                logger.error(f"Error calculating probabilities for {model_name}: {exc}")
                 continue
 
             for explainer_name in self.explainers:
                 try:
                     explainer = self._init_explainer(explainer_name, model)
-                    weights, intercepts = explainer.explain(X_explain)
+                    
+                    # 1. PARALLELIZATION (True Multi-Processing, Joblib fallback)
+                    # Split X_explain into chunks based on the number of available CPU cores
+                    n_cores = multiprocessing.cpu_count() or 4
+                    chunks = np.array_split(X_explain, n_cores)
+                    
+                    # Using joblib.Parallel allows serializing lambdas (used natively by LIME)
+                    # bounding deadlocks and pickling problems automatically.
+                    results = Parallel(n_jobs=n_cores, backend="loky")(
+                        delayed(explainer.explain)(chunk) for chunk in chunks
+                    )
+                    
+                    # Reassemble the results keeping the original order
+                    weights = np.vstack([res[0] for res in results])
+                    intercepts = np.concatenate([res[1] for res in results])
+                    
                 except Exception as exc:
-                    logger.error(f"  -> [{model_name} | {explainer_name}] errore durante l'explain: {exc}")
+                    logger.error(f"  -> [{model_name} | {explainer_name}] error during explain: {exc}")
                     continue
 
                 explanations[(model_name, explainer_name)] = {
@@ -180,14 +202,14 @@ class ExperimentOrchestrator:
 
         return explanations
 
-    def compute_metrics(self, explanations: dict, X_explain: np.ndarray) -> pd.DataFrame:
+    def compute_metrics(self, explanations: dict, X_explain: np.ndarray, current_k: int) -> pd.DataFrame:
         """Compute configured metrics for the supplied explanations dict.
 
         This function is independent from how explanations were produced and
         can be re-used to compute different K or metric sets against cached
         explanations.
         """
-        metrics = build_metrics(self.metrics, k_features=self.k_features)
+        metrics = build_metrics(self.metrics, k_features=current_k)
         results = []
 
         for (model_name, explainer_name), payload in explanations.items():
@@ -205,7 +227,7 @@ class ExperimentOrchestrator:
                         X=X_explain,
                     )
                 except Exception as exc:
-                    logger.error(f"  -> [{model_name} | {explainer_name}] errore nel calcolo della metrica {metric.name}: {exc}")
+                    logger.error(f"  -> [{model_name} | {explainer_name}] errore nel calcolo della metrica {metric.name} (K={current_k}): {exc}")
                     metric_scores[metric.name] = float("nan")
 
             results.append(
@@ -213,7 +235,7 @@ class ExperimentOrchestrator:
                     "dataset": self.dataset_name,
                     "model": model_name,
                     "explainer": explainer_name,
-                    "k_features": self.k_features,
+                    "k_features": current_k,
                     "n_explain": X_explain.shape[0],
                     "accuracy": self.model_scores.get(model_name),
                     **metric_scores,
@@ -221,15 +243,31 @@ class ExperimentOrchestrator:
             )
 
             for metric_name, score in metric_scores.items():
-                logger.info(f"  -> [{model_name} | {explainer_name}] {metric_name}: {score:.6f}")
+                logger.info(f"  -> [{model_name} | {explainer_name}] {metric_name} (K={current_k}): {score:.6f}")
 
         return pd.DataFrame(results)
 
     def run_experiment(self) -> pd.DataFrame:
-        """Executes the full experimental pipeline."""
-        logger.info(f"INIZIO ESPERIMENTO: Limite Cognitivo K={self.k_features}")
+        """Executes the full experimental pipeline with Caching and K-loop optimization."""
+        logger.info(f"STARTING EXPERIMENT: Cognitive Limits K={self.k_features_list}")
         self._load_dataset()
         self._train_models()
-        results = self._generate_explanations()
-        logger.info("ESPERIMENTO CONCLUSO")
-        return results
+        
+        # Data Extraction for Explanation
+        X_explain = self.X_test
+        if self.n_explain is not None:
+            X_explain = self.X_test[: self.n_explain]
+            
+        # 1. Weight Caching: Generate SHAP/LIME ONCE
+        explanations_cache = self.generate_explanations(X_explain)
+        
+        # 2. K-Loop Optimization (Instant Compute iterating over cache)
+        all_results = []
+        for current_k in self.k_features_list:
+            logger.info(f"=== Computing metrics on cached weights for K={current_k} ===")
+            k_result_df = self.compute_metrics(explanations_cache, X_explain, current_k)
+            all_results.append(k_result_df)
+            
+        final_results = pd.concat(all_results, ignore_index=True) if all_results else pd.DataFrame()
+        logger.info("EXPERIMENT CONCLUDED")
+        return final_results
