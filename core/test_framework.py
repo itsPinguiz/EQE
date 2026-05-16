@@ -102,71 +102,126 @@ class ExperimentOrchestrator:
             logger.info(f"  -> [{name}] Test Accuracy: {acc:.4f}")
 
     def _generate_explanations(self) -> pd.DataFrame:
-        """Generate explanations and compute CCC for each model/explainer pair."""
-        logger.info(f"Esecuzione Explainers con limite cognitivo K={self.k_features}...")
+        """Deprecated: kept for compatibility.
 
+        Use `generate_explanations` + `compute_metrics` instead which split the
+        responsibilities: one function only generates explainers' outputs while
+        the other computes and formats metric results.
+        """
         X_explain = self.X_test
         if self.n_explain is not None:
             X_explain = self.X_test[: self.n_explain]
 
+        # Backwards-compatible wrapper that uses the new split flow.
+        explanations = self.generate_explanations(X_explain)
+        return self.compute_metrics(explanations, X_explain)
+
+    def _init_explainer(self, explainer_key: str, model):
+        """Factory that initializes explainers with the correct arguments.
+
+        Centralising explainer initialization keeps `_generate_explanations`
+        clean and allows explainers to evolve without touching the
+        orchestrator logic.
+        """
+        explainer_key = explainer_key.lower()
+        explainer_cls = EXPLAINER_REGISTRY.get(explainer_key)
+        if explainer_cls is None:
+            raise ValueError(f"Explainer non supportato: {explainer_key}")
+
+        if explainer_key == "shap":
+            return explainer_cls(
+                model,
+                background_data=self.X_train,
+                background_size=self.shap_background_size,
+                background_strategy=self.shap_background_strategy,
+            )
+
+        # Default wrapper (LIME-like)
+        return explainer_cls(
+            model,
+            background_data=self.X_train,
+            feature_names=self.feature_names,
+        )
+
+    def generate_explanations(self, X_explain: np.ndarray) -> dict:
+        """Generate and return raw explanations for all model/explainer pairs.
+
+        Returns a dict keyed by (model_name, explainer_name) with values:
+            {
+                "weights": np.ndarray (n_samples, n_features),
+                "intercepts": np.ndarray (n_samples,),
+                "f_proba": np.ndarray (n_samples,),
+            }
+        """
+        logger.info(f"Esecuzione Explainers con limite cognitivo K={self.k_features}...")
+
+        explanations: dict = {}
+
+        for model_name, model in self.models.items():
+            try:
+                f_proba = model.predict_proba(X_explain)[:, 1]
+            except Exception as exc:
+                logger.error(f"Errore nel calcolo delle probabilità per {model_name}: {exc}")
+                continue
+
+            for explainer_name in self.explainers:
+                try:
+                    explainer = self._init_explainer(explainer_name, model)
+                    weights, intercepts = explainer.explain(X_explain)
+                except Exception as exc:
+                    logger.error(f"  -> [{model_name} | {explainer_name}] errore durante l'explain: {exc}")
+                    continue
+
+                explanations[(model_name, explainer_name)] = {
+                    "weights": weights,
+                    "intercepts": intercepts,
+                    "f_proba": f_proba,
+                }
+
+        return explanations
+
+    def compute_metrics(self, explanations: dict, X_explain: np.ndarray) -> pd.DataFrame:
+        """Compute configured metrics for the supplied explanations dict.
+
+        This function is independent from how explanations were produced and
+        can be re-used to compute different K or metric sets against cached
+        explanations.
+        """
         metrics = build_metrics(self.metrics, k_features=self.k_features)
         results = []
 
-        for model_name, model in self.models.items():
-            f_proba = model.predict_proba(X_explain)[:, 1]
+        for (model_name, explainer_name), payload in explanations.items():
+            weights = payload["weights"]
+            intercepts = payload["intercepts"]
+            f_proba = payload["f_proba"]
 
-            for explainer_name in self.explainers:
-                explainer_key = explainer_name.lower()
-                explainer_cls = EXPLAINER_REGISTRY.get(explainer_key)
-                if explainer_cls is None:
-                    raise ValueError(f"Explainer non supportato: {explainer_name}")
-
+            metric_scores = {}
+            for metric in metrics:
                 try:
-                    if explainer_key == "shap":
-                        explainer = explainer_cls(
-                            model,
-                            background_data=self.X_train,
-                            background_size=self.shap_background_size,
-                            background_strategy=self.shap_background_strategy,
-                        )
-                    else:
-                        explainer = explainer_cls(
-                            model,
-                            background_data=self.X_train,
-                            feature_names=self.feature_names,
-                        )
-
-                    weights, intercepts = explainer.explain(X_explain)
-                    metric_scores = {}
-                    for metric in metrics:
-                        metric_scores[metric.name] = metric.compute(
-                            f_proba=f_proba,
-                            weights=weights,
-                            intercepts=intercepts,
-                            X=X_explain,
-                        )
+                    metric_scores[metric.name] = metric.compute(
+                        f_proba=f_proba,
+                        weights=weights,
+                        intercepts=intercepts,
+                        X=X_explain,
+                    )
                 except Exception as exc:
-                    logger.error(
-                        f"  -> [{model_name} | {explainer_name}] errore durante l'explain: {exc}"
-                    )
-                    continue
+                    logger.error(f"  -> [{model_name} | {explainer_name}] errore nel calcolo della metrica {metric.name}: {exc}")
+                    metric_scores[metric.name] = float("nan")
 
-                results.append(
-                    {
-                        "dataset": self.dataset_name,
-                        "model": model_name,
-                        "explainer": explainer_name,
-                        "k_features": self.k_features,
-                        "n_explain": X_explain.shape[0],
-                        "accuracy": self.model_scores.get(model_name),
-                        **metric_scores,
-                    }
-                )
+            results.append(
+                {
+                    "dataset": self.dataset_name,
+                    "model": model_name,
+                    "explainer": explainer_name,
+                    "k_features": self.k_features,
+                    "n_explain": X_explain.shape[0],
+                    "accuracy": self.model_scores.get(model_name),
+                    **metric_scores,
+                }
+            )
 
-                for metric_name, score in metric_scores.items():
-                    logger.info(
-                        f"  -> [{model_name} | {explainer_name}] {metric_name}: {score:.6f}"
-                    )
+            for metric_name, score in metric_scores.items():
+                logger.info(f"  -> [{model_name} | {explainer_name}] {metric_name}: {score:.6f}")
 
         return pd.DataFrame(results)
 
