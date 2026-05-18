@@ -75,13 +75,12 @@ def _normalize_models(models_cfg: Any) -> tuple[list[str] | None, dict[str, dict
     return names, params
 
 
-def _normalize_explainers(explainers_cfg: Any) -> tuple[list[str] | None, int | None, str]:
+def _normalize_explainers(explainers_cfg: Any) -> tuple[list[str] | None, dict[str, dict]]:
     if not explainers_cfg:
-        return None, 100, "sample"
+        return None, {}
 
     names: list[str] = []
-    background_size = 100
-    background_strategy = "sample"
+    params: dict[str, dict] = {}
 
     for item in explainers_cfg:
         if isinstance(item, str):
@@ -92,13 +91,33 @@ def _normalize_explainers(explainers_cfg: Any) -> tuple[list[str] | None, int | 
             if not name:
                 raise ValueError("Ogni explainer deve avere un campo 'name'.")
             names.append(name)
-            if name.lower() == "shap":
-                background_size = item.get("background_size", background_size)
-                background_strategy = item.get("background_strategy", background_strategy)
+            explainer_params = dict(item.get("params", {}))
+            explainer_params.update(
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key not in {"name", "params"}
+                }
+            )
+            params[name.lower()] = explainer_params
             continue
         raise ValueError("Explainer non validi nel config.yml.")
 
-    return names, background_size, background_strategy
+    return names, params
+
+
+def _format_config_names(items_cfg: Any, default: list[str]) -> str:
+    if not items_cfg:
+        return ", ".join(default)
+
+    names = []
+    for item in items_cfg:
+        if isinstance(item, str):
+            names.append(item)
+        elif isinstance(item, dict) and item.get("name"):
+            names.append(item["name"])
+
+    return ", ".join(names or default)
 
 
 def _format_markdown_value(value: Any) -> str:
@@ -107,15 +126,85 @@ def _format_markdown_value(value: Any) -> str:
     return str(value)
 
 
-def _render_markdown_table(df) -> str:
-    headers = list(df.columns)
-    rows = df.values.tolist()
+def _is_numeric_column(df: pd.DataFrame, column: str) -> bool:
+    return pd.api.types.is_numeric_dtype(df[column])
 
-    header_row = "| " + " | ".join(headers) + " |"
-    separator_row = "| " + " | ".join(["---"] * len(headers)) + " |"
+
+def _format_results_table(df: pd.DataFrame) -> str:
+    headers = list(df.columns)
+    formatted_rows = [
+        [_format_markdown_value(cell) for cell in row]
+        for row in df.values.tolist()
+    ]
+    widths = []
+
+    for idx, header in enumerate(headers):
+        row_width = max((len(row[idx]) for row in formatted_rows), default=0)
+        widths.append(max(len(header), row_width))
+
+    numeric_columns = [_is_numeric_column(df, header) for header in headers]
+    header_row = "  ".join(
+        _pad_markdown_cell(header, widths[idx], numeric_columns[idx])
+        for idx, header in enumerate(headers)
+    )
+    separator_row = "  ".join("-" * width for width in widths)
     data_rows = [
-        "| " + " | ".join(_format_markdown_value(cell) for cell in row) + " |"
-        for row in rows
+        "  ".join(
+            _pad_markdown_cell(cell, widths[idx], numeric_columns[idx])
+            for idx, cell in enumerate(row)
+        )
+        for row in formatted_rows
+    ]
+
+    return "\n".join([header_row, separator_row, *data_rows])
+
+
+def _pad_markdown_cell(value: str, width: int, align_right: bool) -> str:
+    if align_right:
+        return value.rjust(width)
+    return value.ljust(width)
+
+
+def _render_markdown_table(df: pd.DataFrame) -> str:
+    headers = list(df.columns)
+    formatted_rows = [
+        [_format_markdown_value(cell) for cell in row]
+        for row in df.values.tolist()
+    ]
+    widths = []
+
+    for idx, header in enumerate(headers):
+        row_width = max((len(row[idx]) for row in formatted_rows), default=0)
+        widths.append(max(len(header), row_width))
+
+    numeric_columns = [_is_numeric_column(df, header) for header in headers]
+
+    header_row = (
+        "| "
+        + " | ".join(
+            _pad_markdown_cell(header, widths[idx], align_right=False)
+            for idx, header in enumerate(headers)
+        )
+        + " |"
+    )
+
+    separator_cells = []
+    for idx, is_numeric in enumerate(numeric_columns):
+        dash_count = max(3, widths[idx])
+        if is_numeric:
+            separator_cells.append("-" * (dash_count - 1) + ":")
+        else:
+            separator_cells.append("-" * dash_count)
+    separator_row = "| " + " | ".join(separator_cells) + " |"
+
+    data_rows = [
+        "| "
+        + " | ".join(
+            _pad_markdown_cell(cell, widths[idx], numeric_columns[idx])
+            for idx, cell in enumerate(row)
+        )
+        + " |"
+        for row in formatted_rows
     ]
 
     return "\n".join([header_row, separator_row, *data_rows])
@@ -171,9 +260,7 @@ def main() -> None:
     explainers_cfg = config.get("explainers", None)
 
     models, model_params = _normalize_models(models_cfg)
-    explainers, shap_background_size, shap_background_strategy = _normalize_explainers(
-        explainers_cfg
-    )
+    explainers, explainer_params = _normalize_explainers(explainers_cfg)
 
     runs = _build_run_matrix(experiment)
     all_results = []
@@ -188,9 +275,9 @@ def main() -> None:
             models=models,
             model_params=model_params,
             explainers=explainers,
+            explainer_params=explainer_params,
             metrics=config.get("metrics"),
-            shap_background_size=shap_background_size,
-            shap_background_strategy=shap_background_strategy,
+            n_jobs=experiment.get("n_jobs"),
             verbose=experiment.get("verbose", True),
         )
 
@@ -201,7 +288,7 @@ def main() -> None:
     print("\n" + "=" * 60)
     print("  Complexity-Calibrated Local Concordance — Results")
     print("=" * 60)
-    print(results.to_string(index=False))
+    print(_format_results_table(results))
     print("=" * 60 + "\n")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -217,7 +304,7 @@ def main() -> None:
         "n_explain": experiment.get("n_explain"),
         "models": ", ".join(models or ["xgboost", "neuralnetwork"]),
         "explainers": ", ".join(explainers or ["lime", "shap"]),
-        "metrics": ", ".join(config.get("metrics", ["ccc_mse"])),
+        "metrics": _format_config_names(config.get("metrics"), ["ccc_mse"]),
         "timestamp": timestamp,
         "runs": len(runs),
     }

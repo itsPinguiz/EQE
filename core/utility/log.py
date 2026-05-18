@@ -4,10 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 class _ColoredFormatter(logging.Formatter):
-    """
-    Formatter interno per aggiungere i codici colore ANSI all'output del terminale.
-    Garantisce un'estetica elegante e leggibile durante l'esecuzione.
-    """
+    """Compact terminal formatter with color applied only to the level label."""
+
     GREY = "\x1b[38;20m"
     BLUE = "\x1b[34;20m"
     GREEN = "\x1b[32;20m"
@@ -15,22 +13,28 @@ class _ColoredFormatter(logging.Formatter):
     RED = "\x1b[31;20m"
     BOLD_RED = "\x1b[31;1m"
     RESET = "\x1b[0m"
-    
-    # Formato: [Data Ora] | LIVELLO | Modulo | Messaggio
-    FORMAT_STR = "%(asctime)s | %(levelname)-8s | %(name)-15s | %(message)s"
 
-    FORMATS = {
-        logging.DEBUG: GREY + FORMAT_STR + RESET,
-        logging.INFO: BLUE + FORMAT_STR + RESET,
-        logging.WARNING: YELLOW + FORMAT_STR + RESET,
-        logging.ERROR: RED + FORMAT_STR + RESET,
-        logging.CRITICAL: BOLD_RED + FORMAT_STR + RESET
+    LEVEL_COLORS = {
+        logging.DEBUG: GREY,
+        logging.INFO: GREEN,
+        logging.WARNING: YELLOW,
+        logging.ERROR: RED,
+        logging.CRITICAL: BOLD_RED,
     }
 
     def format(self, record: logging.LogRecord) -> str:
-        log_fmt = self.FORMATS.get(record.levelno, self.FORMAT_STR)
-        formatter = logging.Formatter(log_fmt, datefmt="%Y-%m-%d %H:%M:%S")
-        return formatter.format(record)
+        color = self.LEVEL_COLORS.get(record.levelno, self.BLUE)
+        level = f"{color}{record.levelname:<7}{self.RESET}"
+        timestamp = self.formatTime(record, "%H:%M:%S")
+        return f"{timestamp}  {level}  {record.name:<9}  {record.getMessage()}"
+
+
+class _PlainFormatter(logging.Formatter):
+    """File formatter without ANSI codes and with full timestamps."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        timestamp = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
+        return f"{timestamp} | {record.levelname:<7} | {record.name:<9} | {record.getMessage()}"
 
 
 class ExperimentLogger:
@@ -75,11 +79,7 @@ class ExperimentLogger:
             
             file_handler = logging.FileHandler(log_path, mode='a', encoding='utf-8')
             # Stesso formato della console, ma senza colori
-            file_format = logging.Formatter(
-                "%(asctime)s | %(levelname)-8s | %(name)-15s | %(message)s", 
-                datefmt="%Y-%m-%d %H:%M:%S"
-            )
-            file_handler.setFormatter(file_format)
+            file_handler.setFormatter(_PlainFormatter())
             logger.addHandler(file_handler)
             
         # Impedisce la propagazione al root logger di Python (evita stampe doppie indesiderate)

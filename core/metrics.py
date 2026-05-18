@@ -230,15 +230,90 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         return "ccc_mse"
 
 
+class RandomKConcordance(EvaluationMetric):
+    """Random-K baseline for additive explanation concordance.
+
+    This baseline keeps ``k_features`` randomly selected contributions per
+    instance instead of the explainer's top-K contributions. It uses the same
+    explanation weights and intercepts as the main CCC metric, making it a
+    direct sanity check for whether top-K selection beats random feature
+    selection.
+    """
+
+    def __init__(
+        self,
+        k_features: int = 4,
+        repeats: int = 30,
+        random_state: int | None = 42,
+    ) -> None:
+        if k_features < 1:
+            raise ValueError(f"k_features must be >= 1, got {k_features}.")
+        if repeats < 1:
+            raise ValueError(f"repeats must be >= 1, got {repeats}.")
+
+        self.k_features = k_features
+        self.repeats = repeats
+        self.random_state = random_state
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+    ) -> float:
+        if self.k_features > weights.shape[1]:
+            raise ValueError(
+                f"k_features ({self.k_features}) is greater than the number "
+                f"of features ({weights.shape[1]})."
+            )
+
+        if self.k_features == weights.shape[1]:
+            g_k = intercepts + np.sum(weights, axis=1)
+            return float(np.mean((f_proba - g_k) ** 2))
+
+        rng = np.random.default_rng(self.random_state)
+        scores = []
+
+        for _ in range(self.repeats):
+            random_order = rng.random(weights.shape)
+            selected = np.argpartition(random_order, self.k_features - 1, axis=1)[
+                :, : self.k_features
+            ]
+
+            truncated = np.zeros_like(weights)
+            row_indices = np.arange(weights.shape[0])[:, None]
+            truncated[row_indices, selected] = weights[row_indices, selected]
+
+            g_k = intercepts + np.sum(truncated, axis=1)
+            scores.append(np.mean((f_proba - g_k) ** 2))
+
+        return float(np.mean(scores))
+
+    def __repr__(self) -> str:
+        return (
+            "RandomKConcordance("
+            f"k_features={self.k_features}, "
+            f"repeats={self.repeats}, "
+            f"random_state={self.random_state})"
+        )
+
+    @property
+    def name(self) -> str:
+        return "random_k_mse"
+
+
 METRIC_REGISTRY = {
     "ccc_mse": ComplexityCalibratedConcordance,
+    "random_k_mse": RandomKConcordance,
 }
 
 
 def build_metrics(
-    metric_names: Iterable[str] | None,
+    metric_names: Iterable[str | dict[str, Any]] | None,
     *,
     k_features: int,
+    random_state: int | None = 42,
 ) -> list[EvaluationMetric]:
     """Instantiate metrics from the registry.
 
@@ -252,15 +327,34 @@ def build_metrics(
     names = list(metric_names) if metric_names is not None else ["ccc_mse"]
     metrics: list[EvaluationMetric] = []
 
-    for name in names:
+    for metric_cfg in names:
+        if isinstance(metric_cfg, str):
+            name = metric_cfg
+            params: dict[str, Any] = {}
+        elif isinstance(metric_cfg, dict):
+            name = metric_cfg.get("name")
+            if not name:
+                raise ValueError("Ogni metrica deve avere un campo 'name'.")
+            params = dict(metric_cfg.get("params", {}))
+            params.update(
+                {
+                    key: value
+                    for key, value in metric_cfg.items()
+                    if key not in {"name", "params"}
+                }
+            )
+        else:
+            raise ValueError("Metriche non valide nel config.yml.")
+
         key = name.lower()
         metric_cls = METRIC_REGISTRY.get(key)
         if metric_cls is None:
             raise ValueError(f"Metrica non supportata: {name}")
 
-        if key == "ccc_mse":
-            metrics.append(metric_cls(k_features=k_features))
-        else:
-            metrics.append(metric_cls())
+        params.setdefault("k_features", k_features)
+        if key == "random_k_mse":
+            params.setdefault("random_state", random_state)
+
+        metrics.append(metric_cls(**params))
 
     return metrics

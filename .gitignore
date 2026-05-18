@@ -1,7 +1,6 @@
 # Ignore everything inside these folders...
 .venv/*
 checkpoints/*
-results/*
 __pycache__/
 *.pyc
 

@@ -1,0 +1,452 @@
+2026-05-04 18:26:49 | INFO     | Orchestrator    | [INFO] INIZIO ESPERIMENTO: Limite Cognitivo K=4
+2026-05-04 18:26:49 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-04 18:26:49 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-04 18:26:49 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-04 18:26:50 | INFO     | Orchestrator    |   -> [XGBoost] Test Accuracy: 0.9561
+2026-05-04 18:26:50 | INFO     | Orchestrator    |   -> [NeuralNetwork] Test Accuracy: 0.9649
+2026-05-04 18:26:50 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=4...
+2026-05-04 18:26:50 | WARNING  | Orchestrator    |   -> WORK IN PROGRESS: Implementazione metriche e XAI...
+2026-05-04 18:26:50 | INFO     | Orchestrator    | [INFO] ESPERIMENTO CONCLUSO
+2026-05-12 18:05:11 | INFO     | Orchestrator    | NIZIO ESPERIMENTO: Limite Cognitivo K=4
+2026-05-12 18:05:11 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:05:11 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:05:11 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:05:12 | INFO     | Orchestrator    |   -> [XGBoost] Test Accuracy: 0.9561
+2026-05-12 18:05:12 | INFO     | Orchestrator    |   -> [NeuralNetwork] Test Accuracy: 0.9649
+2026-05-12 18:05:12 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=4...
+2026-05-12 18:05:12 | WARNING  | Orchestrator    |   -> WORK IN PROGRESS: Implementazione metriche e XAI...
+2026-05-12 18:05:12 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:14:40 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=4
+2026-05-12 18:14:40 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:14:40 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:14:40 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:14:40 | INFO     | Orchestrator    |   -> [XGBoost] Test Accuracy: 0.9561
+2026-05-12 18:14:41 | INFO     | Orchestrator    |   -> [NeuralNetwork] Test Accuracy: 0.9649
+2026-05-12 18:14:41 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=4...
+2026-05-12 18:14:41 | WARNING  | Orchestrator    |   -> WORK IN PROGRESS: Implementazione metriche e XAI...
+2026-05-12 18:14:41 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:20:37 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=4
+2026-05-12 18:20:37 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:20:37 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:20:37 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:20:37 | INFO     | Orchestrator    |   -> [XGBoost] Test Accuracy: 0.9561
+2026-05-12 18:20:38 | INFO     | Orchestrator    |   -> [NeuralNetwork] Test Accuracy: 0.9649
+2026-05-12 18:20:38 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=4...
+2026-05-12 18:20:46 | INFO     | Orchestrator    |   -> [XGBoost | lime] ccc_mse: 0.536282
+2026-05-12 18:21:20 | INFO     | Orchestrator    |   -> [XGBoost | shap] ccc_mse: 0.205961
+2026-05-12 18:21:30 | INFO     | Orchestrator    |   -> [NeuralNetwork | lime] ccc_mse: 0.824337
+2026-05-12 18:23:54 | INFO     | Orchestrator    |   -> [NeuralNetwork | shap] ccc_mse: 0.214055
+2026-05-12 18:23:54 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:32:45 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=4
+2026-05-12 18:32:45 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:32:45 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:32:45 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:32:45 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-12 18:32:46 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-12 18:32:46 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=4...
+2026-05-12 18:32:54 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 0.530723
+2026-05-12 18:33:05 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.214667
+2026-05-12 18:33:16 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 0.816185
+2026-05-12 18:33:47 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 0.228428
+2026-05-12 18:33:47 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:42:28 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=4
+2026-05-12 18:42:28 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:42:28 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:42:28 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:42:28 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-12 18:42:29 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-12 18:42:29 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=4...
+2026-05-12 18:42:37 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 0.527848
+2026-05-12 18:42:49 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.214751
+2026-05-12 18:42:59 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 0.789822
+2026-05-12 18:43:31 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 0.229622
+2026-05-12 18:43:31 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:53:32 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=5
+2026-05-12 18:53:32 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:53:32 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:53:32 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:53:33 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-12 18:53:33 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-12 18:53:33 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=5...
+2026-05-12 18:53:41 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 0.648162
+2026-05-12 18:53:52 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.232876
+2026-05-12 18:54:02 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 0.903989
+2026-05-12 18:54:33 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 0.252237
+2026-05-12 18:54:33 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:54:33 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=6
+2026-05-12 18:54:33 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:54:33 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:54:33 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:54:34 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-12 18:54:34 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-12 18:54:34 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=6...
+2026-05-12 18:54:42 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 0.740498
+2026-05-12 18:54:53 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.247240
+2026-05-12 18:55:03 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 1.065489
+2026-05-12 18:55:35 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 0.282219
+2026-05-12 18:55:35 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:55:35 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=7
+2026-05-12 18:55:35 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:55:35 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:55:35 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:55:35 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-12 18:55:35 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-12 18:55:35 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=7...
+2026-05-12 18:55:43 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 0.843985
+2026-05-12 18:55:55 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.267577
+2026-05-12 18:56:05 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 1.275899
+2026-05-12 18:56:36 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 0.307138
+2026-05-12 18:56:36 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:56:36 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=8
+2026-05-12 18:56:36 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:56:36 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:56:36 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:56:36 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-12 18:56:37 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-12 18:56:37 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=8...
+2026-05-12 18:56:45 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 0.940849
+2026-05-12 18:56:56 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.283289
+2026-05-12 18:57:06 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 1.405656
+2026-05-12 18:57:38 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 0.331549
+2026-05-12 18:57:38 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:57:38 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=9
+2026-05-12 18:57:38 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-12 18:57:38 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-12 18:57:38 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:57:38 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-12 18:57:38 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-12 18:57:38 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=9...
+2026-05-12 18:57:46 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 1.020184
+2026-05-12 18:57:58 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.295556
+2026-05-12 18:58:08 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 1.621057
+2026-05-12 18:58:40 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 0.353223
+2026-05-12 18:58:40 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 18:58:40 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=5
+2026-05-12 18:58:40 | INFO     | Orchestrator    | Loading local dataset: adult...
+2026-05-12 18:58:40 | INFO     | Orchestrator    |   -> Dati caricati. Train: 39073 righe | Test: 9769 righe
+2026-05-12 18:58:40 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 18:58:41 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.8724
+2026-05-12 18:59:42 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.8181
+2026-05-12 18:59:42 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=5...
+2026-05-12 19:21:04 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=5
+2026-05-12 19:21:04 | INFO     | Orchestrator    | Loading local dataset: adult...
+2026-05-12 19:21:05 | INFO     | Orchestrator    |   -> Dati caricati. Train: 39073 righe | Test: 9769 righe
+2026-05-12 19:21:05 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 19:21:05 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.8724
+2026-05-12 19:22:13 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.8181
+2026-05-12 19:22:13 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=5...
+2026-05-12 19:51:32 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse: 1.360931
+2026-05-12 20:17:37 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse: 0.628612
+2026-05-12 20:37:29 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse: 3.950966
+2026-05-12 21:23:55 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse: 1.905105
+2026-05-12 21:23:55 | INFO     | Orchestrator    | ESPERIMENTO CONCLUSO
+2026-05-12 21:23:55 | INFO     | Orchestrator    | INIZIO ESPERIMENTO: Limite Cognitivo K=6
+2026-05-12 21:23:55 | INFO     | Orchestrator    | Loading local dataset: adult...
+2026-05-12 21:23:56 | INFO     | Orchestrator    |   -> Dati caricati. Train: 39073 righe | Test: 9769 righe
+2026-05-12 21:23:56 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-12 21:23:56 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.8724
+2026-05-12 21:24:54 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.8181
+2026-05-12 21:24:54 | INFO     | Orchestrator    | Esecuzione Explainers con limite cognitivo K=6...
+2026-05-18 12:18:00 | INFO     | Orchestrator    | STARTING EXPERIMENT: Cognitive Limits K=[5, 6, 7, 8, 9]
+2026-05-18 12:18:00 | INFO     | Orchestrator    | Loading local dataset: adult...
+2026-05-18 12:18:00 | INFO     | Orchestrator    |   -> Dati caricati. Train: 39073 righe | Test: 9769 righe
+2026-05-18 12:18:00 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-18 12:18:01 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.8724
+2026-05-18 12:19:03 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.8181
+2026-05-18 12:19:03 | INFO     | Orchestrator    | Generating explanations in parallel (Caching)...
+2026-05-18 12:55:33 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=5 ===
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=5): 0.114920
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=5): 0.001385
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=5): 0.709970
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=5): 0.007243
+2026-05-18 12:55:33 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=6 ===
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=6): 0.111770
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=6): 0.000723
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=6): 0.692977
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=6): 0.003973
+2026-05-18 12:55:33 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=7 ===
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=7): 0.109786
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=7): 0.000356
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=7): 0.684473
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=7): 0.001935
+2026-05-18 12:55:33 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=8 ===
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=8): 0.108100
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=8): 0.000144
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=8): 0.679573
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=8): 0.000763
+2026-05-18 12:55:33 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=9 ===
+2026-05-18 12:55:33 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=9): 0.107219
+2026-05-18 12:55:34 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=9): 0.000033
+2026-05-18 12:55:34 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=9): 0.682822
+2026-05-18 12:55:34 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=9): 0.000174
+2026-05-18 12:55:34 | INFO     | Orchestrator    | EXPERIMENT CONCLUDED
+2026-05-18 12:57:38 | INFO     | Orchestrator    | STARTING EXPERIMENT: Cognitive Limits K=[5, 6, 7, 8, 9]
+2026-05-18 12:57:38 | INFO     | Orchestrator    | Loading local dataset: breast_cancer...
+2026-05-18 12:57:38 | INFO     | Orchestrator    |   -> Dati caricati. Train: 455 righe | Test: 114 righe
+2026-05-18 12:57:38 | INFO     | Orchestrator    | Training Black-Box models...
+2026-05-18 12:57:38 | INFO     | Orchestrator    |   -> [xgboost] Test Accuracy: 0.9561
+2026-05-18 12:57:39 | INFO     | Orchestrator    |   -> [neuralnetwork] Test Accuracy: 0.9649
+2026-05-18 12:57:39 | INFO     | Orchestrator    | Generating explanations in parallel (Caching)...
+2026-05-18 12:58:02 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=5 ===
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=5): 0.044417
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=5): 0.017021
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=5): 0.121795
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=5): 0.032086
+2026-05-18 12:58:02 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=6 ===
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=6): 0.034934
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=6): 0.008837
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=6): 0.088803
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=6): 0.018418
+2026-05-18 12:58:02 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=7 ===
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=7): 0.040975
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=7): 0.004152
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=7): 0.077559
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=7): 0.009430
+2026-05-18 12:58:02 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=8 ===
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=8): 0.045779
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=8): 0.001550
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=8): 0.088677
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=8): 0.003791
+2026-05-18 12:58:02 | INFO     | Orchestrator    | === Computing metrics on cached weights for K=9 ===
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | lime] ccc_mse (K=9): 0.049105
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [xgboost | shap] ccc_mse (K=9): 0.000319
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | lime] ccc_mse (K=9): 0.107446
+2026-05-18 12:58:02 | INFO     | Orchestrator    |   -> [neuralnetwork | shap] ccc_mse (K=9): 0.000864
+2026-05-18 12:58:02 | INFO     | Orchestrator    | EXPERIMENT CONCLUDED
+2026-05-18 13:21:43 | ERROR    | Orchestrator    |   -> [xgboost | maple] error during explain: setting an array element with a sequence.
+2026-05-18 13:29:23 | INFO    | Run       | Starting experiment | dataset=breast_cancer | K=[2] | models=xgboost | explainers=shap
+2026-05-18 13:29:23 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-05-18 13:29:23 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-05-18 13:29:23 | INFO    | Model     | Training models | count=1
+2026-05-18 13:29:23 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-05-18 13:29:23 | INFO    | Explain   | Generating explanations | models=1 | explainers=1 | samples=2 | cache=true
+2026-05-18 13:29:23 | INFO    | Explain   | Explaining | model=xgboost | explainer=shap | jobs=1
+2026-05-18 13:29:23 | INFO    | Explain   | Cached explanations | model=xgboost | explainer=shap | shape=2x30
+2026-05-18 13:29:23 | INFO    | Metric    | Computing metrics | K=2
+2026-05-18 13:29:23 | INFO    | Metric    | Score | K=2 | model=xgboost | explainer=shap | ccc_mse=0.050776
+2026-05-18 13:29:23 | INFO    | Metric    | Score | K=2 | model=xgboost | explainer=shap | random_k_mse=0.168548
+2026-05-18 13:29:23 | INFO    | Run       | Experiment concluded | rows=1
+2026-05-18 13:29:45 | INFO    | Run       | Starting experiment | dataset=breast_cancer | K=[2] | models=xgboost | explainers=shap
+2026-05-18 13:29:45 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-05-18 13:29:45 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-05-18 13:29:45 | INFO    | Model     | Training models | count=1
+2026-05-18 13:29:45 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-05-18 13:29:45 | INFO    | Explain   | Generating explanations | models=1 | explainers=1 | samples=2 | cache=true
+2026-05-18 13:29:45 | INFO    | Explain   | Explaining | model=xgboost | explainer=shap | jobs=1
+2026-05-18 13:29:45 | INFO    | Explain   | Cached explanations | model=xgboost | explainer=shap | shape=2x30
+2026-05-18 13:29:45 | INFO    | Metric    | Computing metrics | K=2
+2026-05-18 13:29:45 | INFO    | Metric    | Score | K=2 | model=xgboost | explainer=shap | ccc_mse=0.049639
+2026-05-18 13:29:45 | INFO    | Run       | Experiment concluded | rows=1
+2026-05-18 13:32:21 | INFO    | Run       | Starting experiment | dataset=breast_cancer | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-05-18 13:32:21 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-05-18 13:32:21 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-05-18 13:32:21 | INFO    | Model     | Training models | count=2
+2026-05-18 13:32:21 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-05-18 13:32:21 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9649
+2026-05-18 13:32:21 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-05-18 13:32:21 | INFO    | Explain   | Explaining | model=xgboost | explainer=lime | jobs=auto
+2026-05-18 13:32:29 | INFO    | Explain   | Cached explanations | model=xgboost | explainer=lime | shape=114x30
+2026-05-18 13:32:29 | INFO    | Explain   | Explaining | model=xgboost | explainer=shap | jobs=auto
+2026-05-18 13:32:32 | INFO    | Explain   | Cached explanations | model=xgboost | explainer=shap | shape=114x30
+2026-05-18 13:32:32 | INFO    | Explain   | Explaining | model=xgboost | explainer=maple | jobs=auto
+2026-05-18 13:32:36 | INFO    | Explain   | Cached explanations | model=xgboost | explainer=maple | shape=114x30
+2026-05-18 13:32:36 | INFO    | Explain   | Explaining | model=neuralnetwork | explainer=lime | jobs=auto
+2026-05-18 13:32:38 | INFO    | Explain   | Cached explanations | model=neuralnetwork | explainer=lime | shape=114x30
+2026-05-18 13:32:38 | INFO    | Explain   | Explaining | model=neuralnetwork | explainer=shap | jobs=auto
+2026-05-18 13:32:48 | INFO    | Explain   | Cached explanations | model=neuralnetwork | explainer=shap | shape=114x30
+2026-05-18 13:32:48 | INFO    | Explain   | Explaining | model=neuralnetwork | explainer=maple | jobs=auto
+2026-05-18 13:32:52 | INFO    | Explain   | Cached explanations | model=neuralnetwork | explainer=maple | shape=114x30
+2026-05-18 13:32:52 | INFO    | Metric    | Computing metrics | K=4
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=xgboost | explainer=lime | ccc_mse=0.057298
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=xgboost | explainer=lime | random_k_mse=0.341462
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=xgboost | explainer=shap | ccc_mse=0.031454
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=xgboost | explainer=shap | random_k_mse=0.167334
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=xgboost | explainer=maple | ccc_mse=0.110705
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=xgboost | explainer=maple | random_k_mse=0.307225
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=neuralnetwork | explainer=lime | ccc_mse=0.173156
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=neuralnetwork | explainer=lime | random_k_mse=0.393864
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=neuralnetwork | explainer=shap | ccc_mse=0.051889
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=neuralnetwork | explainer=shap | random_k_mse=0.172326
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=neuralnetwork | explainer=maple | ccc_mse=0.138613
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=4 | model=neuralnetwork | explainer=maple | random_k_mse=0.318253
+2026-05-18 13:32:52 | INFO    | Metric    | Computing metrics | K=5
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=xgboost | explainer=lime | ccc_mse=0.034796
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=xgboost | explainer=lime | random_k_mse=0.312031
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=xgboost | explainer=shap | ccc_mse=0.016972
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=xgboost | explainer=shap | random_k_mse=0.155738
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=xgboost | explainer=maple | ccc_mse=0.062554
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=xgboost | explainer=maple | random_k_mse=0.356200
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=neuralnetwork | explainer=lime | ccc_mse=0.114774
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=neuralnetwork | explainer=lime | random_k_mse=0.356692
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=neuralnetwork | explainer=shap | ccc_mse=0.032646
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=neuralnetwork | explainer=shap | random_k_mse=0.160029
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=neuralnetwork | explainer=maple | ccc_mse=0.059357
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=5 | model=neuralnetwork | explainer=maple | random_k_mse=0.362670
+2026-05-18 13:32:52 | INFO    | Metric    | Computing metrics | K=6
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=xgboost | explainer=lime | ccc_mse=0.035966
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=xgboost | explainer=lime | random_k_mse=0.282859
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=xgboost | explainer=shap | ccc_mse=0.008778
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=xgboost | explainer=shap | random_k_mse=0.143924
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=xgboost | explainer=maple | ccc_mse=0.039174
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=xgboost | explainer=maple | random_k_mse=0.393160
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=neuralnetwork | explainer=lime | ccc_mse=0.092467
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=neuralnetwork | explainer=lime | random_k_mse=0.319872
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=neuralnetwork | explainer=shap | ccc_mse=0.018954
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=neuralnetwork | explainer=shap | random_k_mse=0.147855
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=neuralnetwork | explainer=maple | ccc_mse=0.055206
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=6 | model=neuralnetwork | explainer=maple | random_k_mse=0.404252
+2026-05-18 13:32:52 | INFO    | Metric    | Computing metrics | K=7
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=xgboost | explainer=lime | ccc_mse=0.042252
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=xgboost | explainer=lime | random_k_mse=0.257525
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=xgboost | explainer=shap | ccc_mse=0.004299
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=xgboost | explainer=shap | random_k_mse=0.133541
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=xgboost | explainer=maple | ccc_mse=0.039474
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=xgboost | explainer=maple | random_k_mse=0.415401
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=neuralnetwork | explainer=lime | ccc_mse=0.083463
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=neuralnetwork | explainer=lime | random_k_mse=0.288979
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=neuralnetwork | explainer=shap | ccc_mse=0.009773
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=neuralnetwork | explainer=shap | random_k_mse=0.136572
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=neuralnetwork | explainer=maple | ccc_mse=0.044025
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=7 | model=neuralnetwork | explainer=maple | random_k_mse=0.427780
+2026-05-18 13:32:52 | INFO    | Metric    | Computing metrics | K=8
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=xgboost | explainer=lime | ccc_mse=0.049135
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=xgboost | explainer=lime | random_k_mse=0.233513
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=xgboost | explainer=shap | ccc_mse=0.001619
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=xgboost | explainer=shap | random_k_mse=0.122908
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=xgboost | explainer=maple | ccc_mse=0.032200
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=xgboost | explainer=maple | random_k_mse=0.438971
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=neuralnetwork | explainer=lime | ccc_mse=0.093273
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=neuralnetwork | explainer=lime | random_k_mse=0.259145
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=neuralnetwork | explainer=shap | ccc_mse=0.003974
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=neuralnetwork | explainer=shap | random_k_mse=0.125606
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=neuralnetwork | explainer=maple | ccc_mse=0.041142
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=8 | model=neuralnetwork | explainer=maple | random_k_mse=0.451666
+2026-05-18 13:32:52 | INFO    | Metric    | Computing metrics | K=9
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=xgboost | explainer=lime | ccc_mse=0.053480
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=xgboost | explainer=lime | random_k_mse=0.208823
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=xgboost | explainer=shap | ccc_mse=0.000327
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=xgboost | explainer=shap | random_k_mse=0.112571
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=xgboost | explainer=maple | ccc_mse=0.033755
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=xgboost | explainer=maple | random_k_mse=0.461849
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=neuralnetwork | explainer=lime | ccc_mse=0.109622
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=neuralnetwork | explainer=lime | random_k_mse=0.230874
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=neuralnetwork | explainer=shap | ccc_mse=0.000884
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=neuralnetwork | explainer=shap | random_k_mse=0.115475
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=neuralnetwork | explainer=maple | ccc_mse=0.030099
+2026-05-18 13:32:52 | INFO    | Metric    | Score | K=9 | model=neuralnetwork | explainer=maple | random_k_mse=0.471046
+2026-05-18 13:32:52 | INFO    | Run       | Experiment concluded | rows=36
+2026-05-18 13:32:52 | INFO    | Run       | Starting experiment | dataset=adult | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-05-18 13:32:52 | INFO    | Data      | Loading dataset | name=adult
+2026-05-18 13:32:53 | INFO    | Data      | Loaded dataset | train=39073 | test=9769 | features=100
+2026-05-18 13:32:53 | INFO    | Model     | Training models | count=2
+2026-05-18 13:32:53 | INFO    | Model     | Trained | model=xgboost | accuracy=0.8724
+2026-05-18 13:33:49 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.8254
+2026-05-18 13:33:49 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=9769 | cache=true
+2026-05-18 13:33:49 | INFO    | Explain   | Explaining | model=xgboost | explainer=lime | jobs=auto
+2026-05-18 13:33:50 | INFO    | Run       | Starting experiment | dataset=breast_cancer | K=[2, 3] | models=xgboost | explainers=shap,maple
+2026-05-18 13:33:50 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-05-18 13:33:50 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-05-18 13:33:50 | INFO    | Model     | Training models | count=1
+2026-05-18 13:33:50 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-05-18 13:33:50 | INFO    | Explain   | Generating explanations | models=1 | explainers=2 | samples=5 | cache=true
+2026-05-18 13:33:50 | INFO    | Explain   | Explaining | model=xgboost | explainer=shap | jobs=1
+2026-05-18 13:33:51 | INFO    | Explain   | Cached explanations | model=xgboost | explainer=shap | shape=5x30
+2026-05-18 13:33:51 | INFO    | Explain   | Explaining | model=xgboost | explainer=maple | jobs=1
+2026-05-18 13:33:51 | INFO    | Explain   | Cached explanations | model=xgboost | explainer=maple | shape=5x30
+2026-05-18 13:33:51 | INFO    | Metric    | K=2 summary | ccc_mse: best=0.034117 (xgboost/maple) | random_k_mse: best=0.141840 (xgboost/maple)
+2026-05-18 13:33:51 | INFO    | Metric    | K=3 summary | ccc_mse: best=0.016388 (xgboost/shap) | random_k_mse: best=0.141840 (xgboost/maple)
+2026-05-18 13:33:51 | INFO    | Run       | Experiment concluded | rows=4
+2026-05-18 13:34:19 | INFO    | Run       | Starting experiment | dataset=breast_cancer | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-05-18 13:34:19 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-05-18 13:34:19 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-05-18 13:34:19 | INFO    | Model     | Training models | count=2
+2026-05-18 13:34:20 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-05-18 13:34:20 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9649
+2026-05-18 13:34:20 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-05-18 13:34:20 | INFO    | Explain   | Started | model=xgboost | explainer=lime | jobs=auto
+2026-05-18 13:34:27 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=7.5s
+2026-05-18 13:34:27 | INFO    | Explain   | Started | model=xgboost | explainer=shap | jobs=auto
+2026-05-18 13:34:31 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=3.4s
+2026-05-18 13:34:31 | INFO    | Explain   | Started | model=xgboost | explainer=maple | jobs=auto
+2026-05-18 13:34:35 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=4.3s
+2026-05-18 13:34:35 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime | jobs=auto
+2026-05-18 13:34:37 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=1.5s
+2026-05-18 13:34:37 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap | jobs=auto
+2026-05-18 13:34:46 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=9.7s
+2026-05-18 13:34:46 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple | jobs=auto
+2026-05-18 13:34:51 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=4.3s
+2026-05-18 13:34:51 | INFO    | Metric    | K=4 summary | ccc_mse: best=0.031582 (xgboost/shap) | random_k_mse: best=0.167139 (xgboost/shap)
+2026-05-18 13:34:51 | INFO    | Metric    | K=5 summary | ccc_mse: best=0.017416 (xgboost/shap) | random_k_mse: best=0.155227 (xgboost/shap)
+2026-05-18 13:34:51 | INFO    | Metric    | K=6 summary | ccc_mse: best=0.008837 (xgboost/shap) | random_k_mse: best=0.143584 (xgboost/shap)
+2026-05-18 13:34:51 | INFO    | Metric    | K=7 summary | ccc_mse: best=0.004255 (xgboost/shap) | random_k_mse: best=0.133151 (xgboost/shap)
+2026-05-18 13:34:51 | INFO    | Metric    | K=8 summary | ccc_mse: best=0.001615 (xgboost/shap) | random_k_mse: best=0.122510 (xgboost/shap)
+2026-05-18 13:34:51 | INFO    | Metric    | K=9 summary | ccc_mse: best=0.000327 (xgboost/shap) | random_k_mse: best=0.112099 (xgboost/shap)
+2026-05-18 13:34:51 | INFO    | Run       | Experiment concluded | rows=36
+2026-05-18 13:34:51 | INFO    | Run       | Starting experiment | dataset=adult | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-05-18 13:34:51 | INFO    | Data      | Loading dataset | name=adult
+2026-05-18 13:34:51 | INFO    | Data      | Loaded dataset | train=39073 | test=9769 | features=100
+2026-05-18 13:34:51 | INFO    | Model     | Training models | count=2
+2026-05-18 13:34:52 | INFO    | Model     | Trained | model=xgboost | accuracy=0.8724
+2026-05-18 13:35:55 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.8181
+2026-05-18 13:35:55 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=9769 | cache=true
+2026-05-18 13:35:55 | INFO    | Explain   | Started | model=xgboost | explainer=lime | jobs=auto
+2026-05-18 13:37:25 | INFO    | Run       | Starting experiment | dataset=breast_cancer | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-05-18 13:37:25 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-05-18 13:37:25 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-05-18 13:37:25 | INFO    | Model     | Training models | count=2
+2026-05-18 13:37:25 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-05-18 13:37:25 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9649
+2026-05-18 13:37:25 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-05-18 13:37:25 | INFO    | Explain   | Started | model=xgboost | explainer=lime | jobs=auto
+2026-05-18 13:38:13 | INFO    | Run       | Starting experiment | dataset=breast_cancer | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-05-18 13:38:13 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-05-18 13:38:13 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-05-18 13:38:13 | INFO    | Model     | Training models | count=2
+2026-05-18 13:38:13 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-05-18 13:38:14 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9649
+2026-05-18 13:38:14 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-05-18 13:38:14 | INFO    | Explain   | Started | model=xgboost | explainer=lime | jobs=auto
+2026-05-18 13:38:22 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=8.3s
+2026-05-18 13:38:22 | INFO    | Explain   | Started | model=xgboost | explainer=shap | jobs=auto
+2026-05-18 13:38:26 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=3.8s
+2026-05-18 13:38:26 | INFO    | Explain   | Started | model=xgboost | explainer=maple | jobs=auto
+2026-05-18 13:38:31 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=4.8s
+2026-05-18 13:38:31 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime | jobs=auto
+2026-05-18 13:38:32 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=1.6s
+2026-05-18 13:38:32 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap | jobs=auto
+2026-05-18 13:38:43 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=10.8s
+2026-05-18 13:38:43 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple | jobs=auto
+2026-05-18 13:38:48 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=4.9s
+2026-05-18 13:38:48 | INFO    | Metric    | K=4 summary | ccc_mse: best=0.031699 (xgboost/shap) | random_k_mse: best=0.167358 (xgboost/shap)
+2026-05-18 13:38:48 | INFO    | Metric    | K=5 summary | ccc_mse: best=0.017503 (xgboost/shap) | random_k_mse: best=0.155518 (xgboost/shap)
+2026-05-18 13:38:48 | INFO    | Metric    | K=6 summary | ccc_mse: best=0.009123 (xgboost/shap) | random_k_mse: best=0.143737 (xgboost/shap)
+2026-05-18 13:38:48 | INFO    | Metric    | K=7 summary | ccc_mse: best=0.004402 (xgboost/shap) | random_k_mse: best=0.133350 (xgboost/shap)
+2026-05-18 13:38:48 | INFO    | Metric    | K=8 summary | ccc_mse: best=0.001690 (xgboost/shap) | random_k_mse: best=0.122789 (xgboost/shap)
+2026-05-18 13:38:48 | INFO    | Metric    | K=9 summary | ccc_mse: best=0.000346 (xgboost/shap) | random_k_mse: best=0.112468 (xgboost/shap)
+2026-05-18 13:38:48 | INFO    | Run       | Experiment concluded | rows=36
+2026-05-18 13:38:48 | INFO    | Run       | Starting experiment | dataset=adult | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-05-18 13:38:48 | INFO    | Data      | Loading dataset | name=adult
+2026-05-18 13:38:49 | INFO    | Data      | Loaded dataset | train=39073 | test=9769 | features=100
+2026-05-18 13:38:49 | INFO    | Model     | Training models | count=2
+2026-05-18 13:38:49 | INFO    | Model     | Trained | model=xgboost | accuracy=0.8724
+2026-05-18 13:39:54 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.8181
+2026-05-18 13:39:54 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=9769 | cache=true
+2026-05-18 13:39:54 | INFO    | Explain   | Started | model=xgboost | explainer=lime | jobs=auto
+2026-05-18 13:43:34 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=9769x100 | time=219.9s
+2026-05-18 13:43:34 | INFO    | Explain   | Started | model=xgboost | explainer=shap | jobs=auto
+2026-05-18 13:55:34 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=9769x100 | time=720.2s
+2026-05-18 13:55:34 | INFO    | Explain   | Started | model=xgboost | explainer=maple | jobs=auto
+2026-05-18 13:56:11 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=9769x100 | time=37.1s
+2026-05-18 13:56:11 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime | jobs=auto
+2026-05-18 13:59:36 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=9769x100 | time=205.0s
+2026-05-18 13:59:36 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap | jobs=auto
+2026-05-18 14:16:25 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=9769x100 | time=1009.3s
+2026-05-18 14:16:25 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple | jobs=auto
+2026-05-18 14:17:01 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=9769x100 | time=35.3s
+2026-05-18 14:17:05 | INFO    | Metric    | K=4 summary | ccc_mse: best=0.002755 (xgboost/shap) | random_k_mse: best=0.035140 (xgboost/maple)
+2026-05-18 14:17:09 | INFO    | Metric    | K=5 summary | ccc_mse: best=0.001393 (xgboost/shap) | random_k_mse: best=0.034946 (xgboost/maple)
+2026-05-18 14:17:13 | INFO    | Metric    | K=6 summary | ccc_mse: best=0.000727 (xgboost/shap) | random_k_mse: best=0.034774 (xgboost/maple)
+2026-05-18 14:17:16 | INFO    | Metric    | K=7 summary | ccc_mse: best=0.000358 (xgboost/shap) | random_k_mse: best=0.034588 (xgboost/maple)
+2026-05-18 14:17:20 | INFO    | Metric    | K=8 summary | ccc_mse: best=0.000144 (xgboost/shap) | random_k_mse: best=0.034401 (xgboost/maple)
+2026-05-18 14:17:24 | INFO    | Metric    | K=9 summary | ccc_mse: best=0.000034 (xgboost/shap) | random_k_mse: best=0.034210 (xgboost/maple)
+2026-05-18 14:17:24 | INFO    | Run       | Experiment concluded | rows=36

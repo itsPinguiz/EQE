@@ -2,11 +2,12 @@ experiment:
   dataset: breast_cancer
   k_features: 4
   suite:
-    datasets: [adult]
-    k_features: [5, 6, 7, 8, 9]
+    datasets: [breast_cancer, adult]
+    k_features: [4, 5, 6, 7, 8, 9]
   test_size: 0.2
   random_state: 42
   n_explain: null
+  n_jobs: null
   verbose: true
 
 models:
@@ -17,12 +18,29 @@ models:
 
 explainers:
   - name: lime
+
   - name: shap
-    background_size: 100
-    background_strategy: sample
+    params:
+      background_size: 100
+      background_strategy: sample
+      silent: true
+
+  - name: maple
+    params:
+      fe_type: rf
+      n_estimators: 100
+      max_features: 0.5
+      min_samples_leaf: 10
+      regularization: 0.001
+      validation_size: 100
+      training_size: 2000
 
 metrics:
   - ccc_mse
+  - name: random_k_mse
+    params:
+      repeats: 30
+      random_state: 42
 
 results:
   filename_prefix: results

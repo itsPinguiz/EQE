@@ -1,7 +1,11 @@
 from abc import ABC, abstractmethod
+import os
 import numpy as np
 import numpy.typing as npt
 import warnings
+from sklearn.model_selection import train_test_split
+
+os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 # Try importing XAI libraries safely so the module doesn't crash if one is missing during dev
 try:
@@ -16,6 +20,7 @@ except ImportError:
     lime = None
 
 from core.model import BlackBoxModel
+from core.third_party.MAPLE import MAPLE
 
 class BaseExplainer(ABC):
     """
@@ -56,10 +61,12 @@ class ShapExplainer(BaseExplainer):
         background_data: npt.NDArray[np.float64],
         background_size: int | None = 100,
         background_strategy: str = "sample",
+        silent: bool = True,
     ):
         super().__init__(model)
         if shap is None:
             raise ImportError("Please install 'shap' library to use ShapExplainer.")
+        self.silent = silent
 
         if background_size is not None and background_size < 1:
             raise ValueError("background_size must be >= 1 or None.")
@@ -86,7 +93,10 @@ class ShapExplainer(BaseExplainer):
         
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         # Calculate SHAP values (feature attributions)
-        shap_out = self.explainer.shap_values(X)
+        try:
+            shap_out = self.explainer.shap_values(X, silent=self.silent)
+        except TypeError:
+            shap_out = self.explainer.shap_values(X)
         weights = self._normalize_shap_values(shap_out)
         
         # In SHAP, the intercept is the 'expected_value' across the background dataset.
@@ -167,3 +177,108 @@ class LimeTabularExplainerWrapper(BaseExplainer):
         return weights, intercepts
 
 
+class MapleExplainer(BaseExplainer):
+    """Wrapper for the official MAPLE implementation bundled in third_party.
+
+    MAPLE returns local linear coefficients. The project metric expects
+    per-feature additive contributions, so this wrapper converts each local
+    coefficient beta_i into beta_i * x_i and keeps MAPLE's local intercept.
+    """
+
+    def __init__(
+        self,
+        model: BlackBoxModel,
+        background_data: npt.NDArray[np.float64],
+        validation_size: float | int = 100,
+        training_size: int | None = None,
+        fe_type: str = "rf",
+        n_estimators: int = 200,
+        max_features: float = 0.5,
+        min_samples_leaf: int = 10,
+        regularization: float = 0.001,
+        random_state: int = 42,
+        **_: object,
+    ):
+        super().__init__(model)
+        self.random_state = random_state
+
+        X_train, X_val = self._split_background(
+            background_data=background_data,
+            validation_size=validation_size,
+            training_size=training_size,
+            random_state=random_state,
+        )
+
+        mr_train = self.model.predict_proba(X_train)[:, 1]
+        mr_val = self.model.predict_proba(X_val)[:, 1]
+
+        # The official MAPLE code does not expose random_state in its forest
+        # constructors. Seeding numpy before construction makes sklearn's
+        # random_state=None path reproducible.
+        np.random.seed(random_state)
+        self.explainer = MAPLE(
+            X_train=X_train,
+            MR_train=mr_train,
+            X_val=X_val,
+            MR_val=mr_val,
+            fe_type=fe_type,
+            n_estimators=n_estimators,
+            max_features=max_features,
+            min_samples_leaf=min_samples_leaf,
+            regularization=regularization,
+        )
+
+    def _split_background(
+        self,
+        background_data: npt.NDArray[np.float64],
+        validation_size: float | int,
+        training_size: int | None,
+        random_state: int,
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        if background_data.shape[0] < 2:
+            raise ValueError("MAPLE needs at least two background rows.")
+
+        if isinstance(validation_size, float):
+            if not 0 < validation_size < 1:
+                raise ValueError("MAPLE validation_size as a float must be between 0 and 1.")
+            test_size = validation_size
+        else:
+            if validation_size < 1:
+                raise ValueError("MAPLE validation_size as an int must be >= 1.")
+            test_size = min(validation_size, background_data.shape[0] - 1)
+
+        X_maple_train, X_val = train_test_split(
+            background_data,
+            test_size=test_size,
+            random_state=random_state,
+        )
+
+        if training_size is not None:
+            if training_size < 1:
+                raise ValueError("MAPLE training_size must be >= 1 or null.")
+            if training_size < X_maple_train.shape[0]:
+                rng = np.random.default_rng(random_state)
+                train_indices = rng.choice(
+                    X_maple_train.shape[0],
+                    size=training_size,
+                    replace=False,
+                )
+                X_maple_train = X_maple_train[train_indices]
+
+        return X_maple_train, X_val
+
+    def explain(
+        self,
+        X: npt.NDArray[np.float64],
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        n_samples, n_features = X.shape
+        weights = np.zeros((n_samples, n_features))
+        intercepts = np.zeros(n_samples)
+
+        for i in range(n_samples):
+            exp = self.explainer.explain(X[i])
+            coefs = np.asarray(exp["coefs"], dtype=float)
+            intercepts[i] = coefs[0]
+            weights[i] = coefs[1:] * X[i]
+
+        return weights, intercepts

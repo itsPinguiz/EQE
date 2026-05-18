@@ -1,6 +1,7 @@
 import concurrent.futures
 import multiprocessing
 import concurrent.futures
+import time
 from joblib import Parallel, delayed
 import multiprocessing
 import logging
@@ -11,12 +12,16 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 
 from core.data_loader import AdultIncomeLoader, BreastCancerLoader
-from core.explainers import LimeTabularExplainerWrapper, ShapExplainer
+from core.explainers import LimeTabularExplainerWrapper, MapleExplainer, ShapExplainer
 from core.metrics import build_metrics
 from core.model import NeuralNetworkModel, XGBoostModel
 from core.utility.log import ExperimentLogger
 
-logger = ExperimentLogger.get_logger("Orchestrator")
+run_logger = ExperimentLogger.get_logger("Run")
+data_logger = ExperimentLogger.get_logger("Data")
+model_logger = ExperimentLogger.get_logger("Model")
+explain_logger = ExperimentLogger.get_logger("Explain")
+metric_logger = ExperimentLogger.get_logger("Metric")
 
 MODEL_REGISTRY = {
     "xgboost": XGBoostModel,
@@ -26,6 +31,7 @@ MODEL_REGISTRY = {
 EXPLAINER_REGISTRY = {
     "shap": ShapExplainer,
     "lime": LimeTabularExplainerWrapper,
+    "maple": MapleExplainer,
 }
 
 
@@ -40,9 +46,11 @@ class ExperimentOrchestrator:
         models: Iterable[str] | None = None,
         model_params: dict[str, dict] | None = None,
         explainers: Iterable[str] | None = None,
+        explainer_params: dict[str, dict] | None = None,
         metrics: Iterable[str] | None = None,
-        shap_background_size: int | None = 100,
-        shap_background_strategy: str = "sample",
+        shap_background_size: int | None = None,
+        shap_background_strategy: str | None = None,
+        n_jobs: int | None = None,
         verbose: bool = True,
     ):
         self.dataset_name = dataset_name
@@ -55,9 +63,11 @@ class ExperimentOrchestrator:
         self.models_config = list(models) if models is not None else ["xgboost", "neuralnetwork"]
         self.model_params = model_params or {}
         self.explainers = list(explainers) if explainers is not None else ["lime", "shap"]
+        self.explainer_params = explainer_params or {}
         self.metrics = list(metrics) if metrics is not None else None
         self.shap_background_size = shap_background_size
         self.shap_background_strategy = shap_background_strategy
+        self.n_jobs = n_jobs
         self.verbose = verbose
 
         self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None
@@ -66,11 +76,18 @@ class ExperimentOrchestrator:
         self.model_scores = {}
 
         if not self.verbose:
-            logger.setLevel(logging.WARNING)
+            for stage_logger in (
+                run_logger,
+                data_logger,
+                model_logger,
+                explain_logger,
+                metric_logger,
+            ):
+                stage_logger.setLevel(logging.WARNING)
         
     def _load_dataset(self) -> None:
         """Delega il caricamento dei dati all'apposito DataLoader."""
-        logger.info(f"Loading local dataset: {self.dataset_name}...")
+        data_logger.info(f"Loading dataset | name={self.dataset_name}")
         
         if self.dataset_name == "breast_cancer":
             loader = BreastCancerLoader(test_size=self.test_size, random_state=self.random_state)
@@ -78,18 +95,23 @@ class ExperimentOrchestrator:
             loader = AdultIncomeLoader(test_size=self.test_size, random_state=self.random_state)
         else:
             error_msg = "Dataset non supportato. Usa 'breast_cancer' o 'adult'."
-            logger.error(error_msg)
+            data_logger.error(error_msg)
             raise ValueError(error_msg)
 
         # Il DataLoader fa tutto il lavoro sporco (lettura, encoding, split, scaling)
         self.X_train, self.X_test, self.y_train, self.y_test = loader.load_data()
         self.feature_names = loader.feature_names
         
-        logger.info(f"  -> Dati caricati. Train: {self.X_train.shape[0]} righe | Test: {self.X_test.shape[0]} righe")
+        data_logger.info(
+            "Loaded dataset | "
+            f"train={self.X_train.shape[0]} | "
+            f"test={self.X_test.shape[0]} | "
+            f"features={len(self.feature_names)}"
+        )
 
     def _train_models(self) -> None:
         """Initializes and trains the Black-Box models."""
-        logger.info("Training Black-Box models...")
+        model_logger.info(f"Training models | count={len(self.models_config)}")
         for model_name in self.models_config:
             model_key = model_name.lower()
             model_cls = MODEL_REGISTRY.get(model_key)
@@ -106,7 +128,7 @@ class ExperimentOrchestrator:
             preds = model.predict(self.X_test)
             acc = accuracy_score(self.y_test, preds)
             self.model_scores[name] = float(acc)
-            logger.info(f"  -> [{name}] Test Accuracy: {acc:.4f}")
+            model_logger.info(f"Trained | model={name} | accuracy={acc:.4f}")
 
     def _generate_explanations(self) -> pd.DataFrame:
         """Deprecated: kept for compatibility.
@@ -135,12 +157,31 @@ class ExperimentOrchestrator:
         if explainer_cls is None:
             raise ValueError(f"Explainer non supportato: {explainer_key}")
 
+        params = dict(self.explainer_params.get(explainer_key, {}))
+
         if explainer_key == "shap":
+            params.setdefault(
+                "background_size",
+                100 if self.shap_background_size is None else self.shap_background_size,
+            )
+            params.setdefault(
+                "background_strategy",
+                "sample"
+                if self.shap_background_strategy is None
+                else self.shap_background_strategy,
+            )
             return explainer_cls(
                 model,
                 background_data=self.X_train,
-                background_size=self.shap_background_size,
-                background_strategy=self.shap_background_strategy,
+                **params,
+            )
+
+        if explainer_key == "maple":
+            params.setdefault("random_state", self.random_state)
+            return explainer_cls(
+                model,
+                background_data=self.X_train,
+                **params,
             )
 
         # Default wrapper (LIME-like)
@@ -148,6 +189,7 @@ class ExperimentOrchestrator:
             model,
             background_data=self.X_train,
             feature_names=self.feature_names,
+            **params,
         )
 
     def generate_explanations(self, X_explain: np.ndarray) -> dict:
@@ -160,7 +202,13 @@ class ExperimentOrchestrator:
                 "f_proba": np.ndarray (n_samples,),
             }
         """
-        logger.info(f"Generating explanations in parallel (Caching)...")
+        explain_logger.info(
+            "Generating explanations | "
+            f"models={len(self.models)} | "
+            f"explainers={len(self.explainers)} | "
+            f"samples={X_explain.shape[0]} | "
+            f"cache=true"
+        )
 
         explanations: dict = {}
 
@@ -168,16 +216,24 @@ class ExperimentOrchestrator:
             try:
                 f_proba = model.predict_proba(X_explain)[:, 1]
             except Exception as exc:
-                logger.error(f"Error calculating probabilities for {model_name}: {exc}")
+                explain_logger.error(f"Probability error | model={model_name} | error={exc}")
                 continue
 
             for explainer_name in self.explainers:
                 try:
+                    started_at = time.perf_counter()
+                    explain_logger.info(
+                        "Started | "
+                        f"model={model_name} | "
+                        f"explainer={explainer_name} | "
+                        f"jobs={self.n_jobs or 'auto'}"
+                    )
                     explainer = self._init_explainer(explainer_name, model)
                     
                     # 1. PARALLELIZATION (True Multi-Processing, Joblib fallback)
                     # Split X_explain into chunks based on the number of available CPU cores
-                    n_cores = multiprocessing.cpu_count() or 4
+                    n_cores = self.n_jobs or multiprocessing.cpu_count() or 4
+                    n_cores = max(1, min(n_cores, X_explain.shape[0] or 1))
                     chunks = np.array_split(X_explain, n_cores)
                     
                     # Using joblib.Parallel allows serializing lambdas (used natively by LIME)
@@ -189,9 +245,22 @@ class ExperimentOrchestrator:
                     # Reassemble the results keeping the original order
                     weights = np.vstack([res[0] for res in results])
                     intercepts = np.concatenate([res[1] for res in results])
+                    elapsed = time.perf_counter() - started_at
+                    explain_logger.info(
+                        "Finished | "
+                        f"model={model_name} | "
+                        f"explainer={explainer_name} | "
+                        f"shape={weights.shape[0]}x{weights.shape[1]} | "
+                        f"time={elapsed:.1f}s"
+                    )
                     
                 except Exception as exc:
-                    logger.error(f"  -> [{model_name} | {explainer_name}] error during explain: {exc}")
+                    explain_logger.error(
+                        "Explanation error | "
+                        f"model={model_name} | "
+                        f"explainer={explainer_name} | "
+                        f"error={exc}"
+                    )
                     continue
 
                 explanations[(model_name, explainer_name)] = {
@@ -209,7 +278,11 @@ class ExperimentOrchestrator:
         can be re-used to compute different K or metric sets against cached
         explanations.
         """
-        metrics = build_metrics(self.metrics, k_features=current_k)
+        metrics = build_metrics(
+            self.metrics,
+            k_features=current_k,
+            random_state=self.random_state,
+        )
         results = []
 
         for (model_name, explainer_name), payload in explanations.items():
@@ -227,7 +300,14 @@ class ExperimentOrchestrator:
                         X=X_explain,
                     )
                 except Exception as exc:
-                    logger.error(f"  -> [{model_name} | {explainer_name}] errore nel calcolo della metrica {metric.name} (K={current_k}): {exc}")
+                    metric_logger.error(
+                        "Metric error | "
+                        f"model={model_name} | "
+                        f"explainer={explainer_name} | "
+                        f"metric={metric.name} | "
+                        f"K={current_k} | "
+                        f"error={exc}"
+                    )
                     metric_scores[metric.name] = float("nan")
 
             results.append(
@@ -243,13 +323,52 @@ class ExperimentOrchestrator:
             )
 
             for metric_name, score in metric_scores.items():
-                logger.info(f"  -> [{model_name} | {explainer_name}] {metric_name} (K={current_k}): {score:.6f}")
+                metric_logger.debug(
+                    "Score | "
+                    f"K={current_k} | "
+                    f"model={model_name} | "
+                    f"explainer={explainer_name} | "
+                    f"{metric_name}={score:.6f}"
+                )
 
         return pd.DataFrame(results)
 
+    def _log_metric_summary(self, result_df: pd.DataFrame, current_k: int) -> None:
+        if result_df.empty:
+            metric_logger.warning(f"No metric rows produced | K={current_k}")
+            return
+
+        summary_parts = []
+        for metric_name in self._metric_result_columns(result_df):
+            best_idx = result_df[metric_name].idxmin()
+            best_row = result_df.loc[best_idx]
+            summary_parts.append(
+                f"{metric_name}: best={best_row[metric_name]:.6f} "
+                f"({best_row['model']}/{best_row['explainer']})"
+            )
+
+        metric_logger.info(f"K={current_k} summary | " + " | ".join(summary_parts))
+
+    def _metric_result_columns(self, result_df: pd.DataFrame) -> list[str]:
+        metadata_columns = {
+            "dataset",
+            "model",
+            "explainer",
+            "k_features",
+            "n_explain",
+            "accuracy",
+        }
+        return [column for column in result_df.columns if column not in metadata_columns]
+
     def run_experiment(self) -> pd.DataFrame:
         """Executes the full experimental pipeline with Caching and K-loop optimization."""
-        logger.info(f"STARTING EXPERIMENT: Cognitive Limits K={self.k_features_list}")
+        run_logger.info(
+            "Starting experiment | "
+            f"dataset={self.dataset_name} | "
+            f"K={self.k_features_list} | "
+            f"models={','.join(self.models_config)} | "
+            f"explainers={','.join(self.explainers)}"
+        )
         self._load_dataset()
         self._train_models()
         
@@ -264,10 +383,10 @@ class ExperimentOrchestrator:
         # 2. K-Loop Optimization (Instant Compute iterating over cache)
         all_results = []
         for current_k in self.k_features_list:
-            logger.info(f"=== Computing metrics on cached weights for K={current_k} ===")
             k_result_df = self.compute_metrics(explanations_cache, X_explain, current_k)
+            self._log_metric_summary(k_result_df, current_k)
             all_results.append(k_result_df)
             
         final_results = pd.concat(all_results, ignore_index=True) if all_results else pd.DataFrame()
-        logger.info("EXPERIMENT CONCLUDED")
+        run_logger.info(f"Experiment concluded | rows={final_results.shape[0]}")
         return final_results
