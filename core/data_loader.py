@@ -38,6 +38,23 @@ class BaseDataLoader(ABC):
         return X_train_scaled, X_test_scaled, y_train, y_test
 
 class BreastCancerLoader(BaseDataLoader):
+    WDBC_FEATURE_NAMES = [
+        f"{stat} {feature}"
+        for stat in ("mean", "se", "worst")
+        for feature in (
+            "radius",
+            "texture",
+            "perimeter",
+            "area",
+            "smoothness",
+            "compactness",
+            "concavity",
+            "concave points",
+            "symmetry",
+            "fractal dimension",
+        )
+    ]
+
     def load_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         path = Path("datasets/BSWD/wdbc.data")
         if path.exists():
@@ -48,7 +65,7 @@ class BreastCancerLoader(BaseDataLoader):
             y = df[1].map({'M': 1, 'B': 0}).values
             X_df = df.drop(1, axis=1)
 
-            self.feature_names = [f"feature_{i}" for i in range(1, 31)]
+            self.feature_names = self.WDBC_FEATURE_NAMES
             X = X_df.values
         else:
             logger.warning(

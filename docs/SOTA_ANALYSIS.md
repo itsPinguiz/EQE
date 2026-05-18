@@ -1,80 +1,30 @@
 # Valutazione SOTA delle Spiegazioni con CCC-MSE
 
-## 1. Obiettivo del Progetto
+## 1. Obiettivo, Contesto e Gap
 
 Questo progetto studia come valutare la qualita' delle spiegazioni prodotte da
-tecniche di Explainable AI. L'obiettivo non e' soltanto confrontare metodi di
-spiegazione esistenti, ma anche proporre una strategia di valutazione capace di
-misurare aspetti spesso trattati separatamente nella letteratura.
+tecniche di Explainable AI. La letteratura considera molte dimensioni, tra cui
+**faithfulness**, **plausibility**, **robustness**, **stability**,
+**compactness** e **usability**. Tuttavia, molte metriche valutano una sola
+proprieta' alla volta, rendendo difficile capire se una spiegazione sia insieme
+fedele al modello e leggibile per un utente.
 
-In particolare, il progetto si concentra su una domanda specifica:
+Il focus di questo lavoro e' il rapporto tra **faithfulness** e
+**compactness**:
 
 > Una spiegazione rimane fedele al modello anche quando viene limitata a un
 > numero ridotto di feature interpretabili da un essere umano?
 
-Per rispondere, e' stata proposta e implementata una metrica chiamata
-**Complexity-Calibrated Local Concordance**, misurata tramite `ccc_mse`.
+Dalla revisione in dei papaer emerge un gap specifico: le metriche
+di fidelity tradizionali non distinguono chiaramente tra una spiegazione fedele
+perche' usa molte feature e una spiegazione fedele pur restando compatta.
 
-La metrica combina due dimensioni:
+Per affrontare questo gap e' stata proposta e implementata la
+**Complexity-Calibrated Local Concordance**, misurata tramite `ccc_mse`. La
+metrica valuta la ricostruzione locale del modello dopo aver mantenuto solo le
+top `K` feature.
 
-- **faithfulness**, cioe' quanto la spiegazione ricostruisce il comportamento
-  locale del modello black-box;
-- **compactness**, cioe' quanto la spiegazione resta fedele usando solo le top
-  `K` feature.
-
-Questa impostazione risponde direttamente alla specifica del progetto: analizzare
-metodi esistenti, identificare limiti negli approcci di valutazione e proporre
-una metrica che catturi un aspetto della qualita' delle spiegazioni ancora poco
-esplorato in modo sistematico.
-
-## 2. Contesto e Motivazione
-
-I metodi di spiegazione, come LIME, SHAP e MAPLE, aiutano a interpretare le
-decisioni di modelli complessi. Tuttavia, valutare la qualita' delle spiegazioni
-rimane un problema aperto.
-
-La letteratura propone molte famiglie di metriche:
-
-- **faithfulness / fidelity**: misura se la spiegazione riflette davvero il
-  comportamento del modello;
-- **plausibility**: misura se la spiegazione e' coerente con il ragionamento
-  umano o con annotazioni umane;
-- **robustness / stability**: misura se la spiegazione resta stabile rispetto a
-  piccole perturbazioni dell'input o del modello;
-- **compactness / conciseness**: misura se la spiegazione e' sufficientemente
-  sintetica da essere leggibile;
-- **usability**: misura se la spiegazione aiuta effettivamente un utente in un
-  compito reale.
-
-Il problema e' che molte valutazioni si concentrano su una sola dimensione. Una
-spiegazione puo' essere fedele ma troppo lunga, oppure compatta ma poco fedele.
-Allo stesso modo, una spiegazione puo' sembrare plausibile a un essere umano ma
-non rappresentare davvero il comportamento del modello.
-
-Il contributo di questo progetto si colloca in questo spazio: valutare la
-fedelta' locale tenendo conto di un vincolo di complessita' cognitiva.
-
-## 3. Gap di Ricerca Identificato
-
-Dalla revisione in `docs/PAPERS_REVIEW.md` emergono alcuni limiti ricorrenti:
-
-- molte metriche valutano una sola proprieta' della spiegazione;
-- i benchmark non sempre permettono un confronto uniforme tra explainer diversi;
-- la fedelta' viene spesso misurata senza imporre un limite alla dimensione della
-  spiegazione;
-- il legame tra metriche quantitative e interpretabilita' umana rimane debole;
-- i metodi post-hoc vengono spesso confrontati senza un controllo casuale, quindi
-  non e' sempre chiaro se le feature selezionate siano davvero informative.
-
-Il gap affrontato qui e' quindi:
-
-> Le metriche di fidelity tradizionali non distinguono chiaramente tra una
-> spiegazione fedele perche' usa molte feature e una spiegazione fedele pur
-> restando compatta.
-
-La metrica `ccc_mse` cerca di rendere misurabile questo trade-off.
-
-## 4. Metrica Proposta: CCC-MSE
+## 2. Metrica Proposta: CCC-MSE
 
 La metrica implementata e' una versione MSE della **Complexity-Calibrated Local
 Concordance**.
@@ -102,7 +52,7 @@ dove:
 Un valore piu' basso indica una spiegazione piu' fedele sotto vincolo di
 compattezza.
 
-## 5. Baseline Random-K
+## 3. Baseline Random-K
 
 Per verificare che la selezione top-`K` non sia arbitraria, e' stata aggiunta una
 baseline `random_k_mse`.
@@ -119,7 +69,7 @@ La baseline risponde a una domanda importante:
 Nel run corrente, la risposta e' si': `ccc_mse` batte `random_k_mse` in tutte le
 72 configurazioni valutate.
 
-## 6. Framework Implementato
+## 4. Framework Implementato
 
 Il framework sperimentale valuta spiegazioni su dati tabulari binari.
 
@@ -134,19 +84,9 @@ Il framework sperimentale valuta spiegazioni su dati tabulari binari.
 | Istanze spiegate su Breast Cancer | 114 |
 | Istanze spiegate su Adult | 9769 |
 
-Il run di riferimento e':
+## 5. Risultati Principali
 
-```text
-results/SOTA/results_20260518_141724.md
-```
-
-Le configurazioni sono controllate da `config.yml`, in modo da avere un unico
-punto per modificare dataset, modelli, explainer, metriche, valori di `K`,
-parallelizzazione e parametri specifici degli explainer.
-
-## 7. Risultati Principali
-
-### 7.1 Migliori configurazioni
+### 5.1 Migliori configurazioni
 
 | Dataset | Miglior modello | Miglior explainer | K | Accuracy | `ccc_mse` | `random_k_mse` |
 | --- | --- | --- | ---: | ---: | ---: | ---: |
@@ -159,7 +99,7 @@ La configurazione migliore e':
 
 Questo vale per entrambi i dataset.
 
-### 7.2 Confronto tra explainer
+### 5.2 Confronto tra explainer
 
 Media di `ccc_mse` su tutti i valori di `K` e su entrambi i modelli:
 
@@ -184,7 +124,7 @@ SHAP e' il miglior explainer in termini di fedelta' sotto vincolo di `K`. MAPLE
 si comporta come una baseline intermedia utile: e' spesso molto migliore di LIME,
 ma non raggiunge SHAP.
 
-### 7.3 Confronto a K = 9
+### 5.3 Confronto a K = 9
 
 | Dataset | Model | Explainer | Accuracy | `ccc_mse` | `random_k_mse` |
 | --- | --- | --- | ---: | ---: | ---: |
@@ -201,9 +141,9 @@ ma non raggiunge SHAP.
 | `breast_cancer` | XGBoost | LIME | 0.956140 | 0.049569 | 0.208233 |
 | `breast_cancer` | NeuralNetwork | LIME | 0.964912 | 0.109622 | 0.230874 |
 
-## 8. Interpretazione dei Risultati
+## 6. Interpretazione dei Risultati
 
-### 8.1 SHAP rimane lo stato dell'arte nel benchmark
+### 6.1 SHAP rimane lo stato dell'arte nel benchmark
 
 SHAP ottiene il miglior `ccc_mse` in entrambi i dataset e per entrambi i modelli.
 Inoltre migliora fortemente all'aumentare di `K`, come ci si aspetta da un metodo
@@ -219,7 +159,7 @@ Da `K = 4` a `K = 9`:
 | `breast_cancer` | XGBoost | SHAP | 0.031699 | 0.000346 | -98.9% |
 | `breast_cancer` | NeuralNetwork | SHAP | 0.051071 | 0.000851 | -98.3% |
 
-### 8.2 MAPLE aggiunge una baseline informativa
+### 6.2 MAPLE aggiunge una baseline informativa
 
 MAPLE non supera SHAP, ma e' importante per il progetto per due motivi:
 
@@ -229,7 +169,7 @@ MAPLE non supera SHAP, ma e' importante per il progetto per due motivi:
 
 Questo aiuta a rendere la valutazione piu' sistematica e comparabile.
 
-### 8.3 Random-K valida la metrica
+### 6.3 Random-K valida la metrica
 
 Il controllo random-K e' uno dei risultati piu' importanti:
 
@@ -242,7 +182,7 @@ Questo dimostra che le feature selezionate dagli explainer non sono equivalenti 
 feature casuali. Le top `K` feature conservano piu' informazione sulla predizione
 del modello rispetto a un sottoinsieme casuale della stessa dimensione.
 
-## 9. Perche' la Metrica e' Utile
+## 7. Perche' la Metrica e' Utile
 
 La metrica e' utile perche' fornisce informazioni che l'accuracy non mostra.
 
@@ -281,38 +221,14 @@ In sintesi, `ccc_mse` e' utile perche':
 - include un controllo random-K per verificare che la selezione top-`K` sia
   significativa.
 
-## 10. Limiti
+## 8. Limiti e Prossimi Esperimenti
 
-### Un solo run per dataset
+Il run corrente e' una snapshot utile, ma non esaurisce la valutazione richiesta
+da un framework completo. I limiti principali sono: un solo seed per dataset,
+due soli dataset tabulari, assenza di una misura human-grounded diretta e
+assenza di un'analisi di stabilita' delle top feature.
 
-Il run corrente e' sufficiente per una snapshot SOTA, ma non per affermazioni
-statistiche forti. Servono piu' seed e deviazioni standard.
-
-### Dataset ancora limitati
-
-Adult e Breast Cancer sono dataset tabulari utili, ma una valutazione piu'
-completa dovrebbe includere altri domini, ad esempio credito, diabete o rischio
-cardiaco.
-
-### La metrica non misura direttamente la plausibilita'
-
-`ccc_mse` misura una proprieta' functionally-grounded: la fedelta' della
-spiegazione al modello. Non misura se la spiegazione e' percepita come plausibile
-da esseri umani.
-
-### La metrica non sostituisce uno user study
-
-Il vincolo `K` e' motivato da considerazioni cognitive, ma la metrica non prova
-che gli utenti comprendano meglio le spiegazioni. Per questo servirebbe uno
-studio human-grounded.
-
-### L2X richiede un percorso separato
-
-L2X non produce coefficienti locali additivi come SHAP, LIME o MAPLE. Produce
-probabilita' di selezione delle feature. Andrebbe quindi valutato con una
-variante di subset fidelity, non forzato dentro la stessa interfaccia additiva.
-
-## 11. Prossimi Esperimenti
+I prossimi esperimenti piu' rilevanti sono:
 
 1. Aggiungere piu' seed.
 
@@ -323,23 +239,23 @@ variante di subset fidelity, non forzato dentro la stessa interfaccia additiva.
 
    Aggiungere `K = 1, 2, 3` per valutare vincoli cognitivi piu' severi.
 
-3. Aggiungere stabilita' delle top feature.
+3. Misurare la stabilita' delle top feature.
 
-   Misurare quanto l'insieme delle top `K` feature cambia tra run, perturbazioni
-   o seed diversi.
+   Valutare quanto l'insieme delle top `K` feature cambia tra seed, run o
+   piccole perturbazioni dell'input.
 
 4. Aggiungere L2X con subset fidelity.
 
-   Valutare L2X selezionando le top `K` feature per probabilita' di selezione,
-   mascherando le altre, e confrontando la predizione del modello sull'input
-   mascherato con quella originale.
+   L2X produce probabilita' di selezione delle feature, non coefficienti locali
+   additivi. Va quindi valutato selezionando le top `K` feature, mascherando le
+   altre e confrontando la predizione del modello sull'input mascherato.
 
 5. Integrare una dimensione human-grounded.
 
-   Possibili estensioni includono plausibilita' rispetto ad annotazioni umane,
-   task-based evaluation o misure di utilita' per utenti finali.
+   Possibili estensioni includono confronto con annotazioni umane, task-based
+   evaluation o misure di utilita' per utenti finali.
 
-## 12. Sintesi Finale
+## 9. Sintesi Finale
 
 Il progetto propone una strategia di valutazione per spiegazioni locali che
 combina fedelta' e compattezza. La metrica `ccc_mse` misura quanto una
