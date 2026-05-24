@@ -23,8 +23,8 @@ import pandas as pd
 # Permette di eseguire anche: `python core/main.py`
 sys.path.append(str(Path(__file__).parent.parent))
 
-from core.config import DEFAULT_CONFIG_PATH, load_config
 from core.test_framework import ExperimentOrchestrator
+from core.utility.config import DEFAULT_CONFIG_PATH, load_config
 
 
 def parse_args() -> argparse.Namespace:

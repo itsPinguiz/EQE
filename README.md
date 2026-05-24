@@ -56,15 +56,20 @@ in every tested configuration.
 
 ```text
 core/
-  config.py                      # YAML config loader
   data_loader.py                 # dataset loading and preprocessing
   explainers.py                  # LIME, SHAP, MAPLE wrappers
+  graph_utilities/
+    benchmark_summary.py         # summary charts from benchmark results
+    feature_reduction.py         # slide-ready top-K visualization
   main.py                        # CLI entry point
   metrics.py                     # ccc_mse and random_k_mse
   model.py                       # black-box model wrappers
   test_framework.py              # experiment orchestration
-  visualize_feature_reduction.py # slide-ready top-K visualization
   third_party/MAPLE.py           # official MAPLE implementation
+  visualize.py                   # visualization CLI
+  utility/
+    config.py                    # YAML config loader
+    log.py                       # logging helpers
 
 docs/
   PAPERS_REVIEW.md               # literature review notes
@@ -151,10 +156,19 @@ experiment:
 
 ## Generating Presentation Figures
 
+To create the recommended summary charts from the SOTA results table:
+
+```bash
+uv run core/visualize.py benchmark-summary \
+  --results results/SOTA/results_20260518_141724.md
+```
+
+This creates presentation PNGs under `results/figures/presentation/`.
+
 To visualize the feature reduction process for a single instance:
 
 ```bash
-uv run core/visualize_feature_reduction.py \
+uv run core/visualize.py feature-reduction \
   --dataset breast_cancer \
   --model xgboost \
   --explainer shap \
@@ -173,10 +187,10 @@ This creates a PNG in `results/figures/` showing:
 Useful slide examples:
 
 ```bash
-uv run core/visualize_feature_reduction.py --dataset breast_cancer --model xgboost --explainer shap --instance-index 0 --k 4
-uv run core/visualize_feature_reduction.py --dataset breast_cancer --model xgboost --explainer shap --instance-index 0 --k 9
-uv run core/visualize_feature_reduction.py --dataset breast_cancer --model xgboost --explainer lime --instance-index 0 --k 4
-uv run core/visualize_feature_reduction.py --dataset breast_cancer --model xgboost --explainer maple --instance-index 0 --k 4
+uv run core/visualize.py feature-reduction --dataset breast_cancer --model xgboost --explainer shap --instance-index 0 --k 4
+uv run core/visualize.py feature-reduction --dataset breast_cancer --model xgboost --explainer shap --instance-index 0 --k 9
+uv run core/visualize.py feature-reduction --dataset breast_cancer --model xgboost --explainer lime --instance-index 0 --k 4
+uv run core/visualize.py feature-reduction --dataset breast_cancer --model xgboost --explainer maple --instance-index 0 --k 4
 ```
 
 ## Current Findings

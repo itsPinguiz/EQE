@@ -2,7 +2,7 @@
 Generate presentation-ready visual examples of top-K feature reduction.
 
 Example:
-    uv run core/visualize_feature_reduction.py \
+    uv run python -m core.graph_utilities.feature_reduction \
         --dataset breast_cancer \
         --model xgboost \
         --explainer shap \
@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
@@ -22,14 +24,14 @@ os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 import matplotlib.pyplot as plt
 import numpy as np
 
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from core.config import DEFAULT_CONFIG_PATH, load_config
 from core.main import _normalize_explainers, _normalize_models
 from core.test_framework import ExperimentOrchestrator
+from core.utility.config import DEFAULT_CONFIG_PATH, load_config
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="EQE feature reduction visualizer",
         description="Create a plot showing full local explanation vs top-K reduction.",
@@ -42,7 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--k", type=int, default=4)
     parser.add_argument("--top-n", type=int, default=12)
     parser.add_argument("--output-dir", default="results/figures")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def _safe_filename(value: str) -> str:
@@ -98,7 +100,11 @@ def _compute_example(args: argparse.Namespace) -> dict:
     top_k_mse = float((f_proba - top_k_reconstruction) ** 2)
 
     return {
-        "feature_names": orchestrator.feature_names,
+        "feature_names": _validated_feature_names(
+            orchestrator.feature_names,
+            n_features=contributions.shape[0],
+            dataset_name=args.dataset,
+        ),
         "contributions": contributions,
         "ranked_indices": ranked_indices,
         "top_k_indices": set(int(idx) for idx in top_k_indices),
@@ -110,6 +116,32 @@ def _compute_example(args: argparse.Namespace) -> dict:
         "accuracy": orchestrator.model_scores[args.model],
         "n_features": contributions.shape[0],
     }
+
+
+def _validated_feature_names(
+    feature_names: Sequence[str],
+    n_features: int,
+    dataset_name: str,
+) -> list[str]:
+    """Require dataset-derived feature names before plotting labels."""
+    names = list(feature_names)
+    if len(names) != n_features:
+        raise ValueError(
+            f"{dataset_name}: {len(names)} feature names found for {n_features} columns."
+        )
+
+    generic_names = [
+        name
+        for name in names
+        if re.fullmatch(r"feature[_ ]?\d+", name.strip(), flags=re.IGNORECASE)
+    ]
+    if generic_names:
+        preview = ", ".join(generic_names[:5])
+        raise ValueError(
+            f"{dataset_name}: generic feature labels are not allowed in plots: {preview}"
+        )
+
+    return names
 
 
 def _plot_feature_reduction(args: argparse.Namespace, example: dict) -> Path:
@@ -127,7 +159,7 @@ def _plot_feature_reduction(args: argparse.Namespace, example: dict) -> Path:
     values = contributions[shown_indices]
     colors = ["#1f9d55" if int(idx) in top_k_indices else "#b7bec8" for idx in shown_indices]
 
-    fig = plt.figure(figsize=(13, 7.5), constrained_layout=True)
+    fig = plt.figure(figsize=(14.5, 8.5), constrained_layout=True)
     grid = fig.add_gridspec(
         3,
         2,
@@ -189,24 +221,28 @@ def _plot_feature_reduction(args: argparse.Namespace, example: dict) -> Path:
     max_reconstruction = max(reconstruction_values)
     spread = max_reconstruction - min_reconstruction
     padding = max(0.02, spread * 0.35)
-    y_min = max(0.0, min_reconstruction - padding)
-    y_max = min(1.0, max_reconstruction + padding)
+    y_min = min_reconstruction - padding
+    y_max = max_reconstruction + padding
     if y_max - y_min < 0.08:
         center = (y_min + y_max) / 2
-        y_min = max(0.0, center - 0.04)
-        y_max = min(1.0, center + 0.04)
+        y_min = center - 0.04
+        y_max = center + 0.04
 
     ax_reconstruction.set_ylim(y_min, y_max)
-    ax_reconstruction.set_ylabel("Positive-class probability")
+    ax_reconstruction.axhline(0, color="#2b2f36", linewidth=0.8, alpha=0.45)
+    ax_reconstruction.set_ylabel("Prediction / reconstruction")
     ax_reconstruction.set_title("Prediction reconstruction (zoomed)")
     ax_reconstruction.grid(axis="y", linestyle="--", alpha=0.25)
     for idx, value in enumerate(reconstruction_values):
         label_offset = (y_max - y_min) * 0.04
+        label_y = value + label_offset if value >= 0 else value - label_offset
+        label_y = min(max(label_y, y_min + label_offset), y_max - label_offset)
         ax_reconstruction.text(
             idx,
-            min(value + label_offset, y_max - label_offset),
+            label_y,
             f"{value:.3f}",
             ha="center",
+            va="bottom" if value >= 0 else "top",
         )
 
     kept = args.k
@@ -276,8 +312,8 @@ def _plot_feature_reduction(args: argparse.Namespace, example: dict) -> Path:
     return output_path
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: Sequence[str] | None = None) -> None:
+    args = parse_args(argv)
     example = _compute_example(args)
     output_path = _plot_feature_reduction(args, example)
     print(f"Saved feature-reduction figure: {output_path}")

@@ -35,6 +35,8 @@ dev = [
 
 [project.scripts]
 eqe = "core.main:main"
+eqe-visualize = "core.visualize:main"
+eqe-feature-reduction = "core.graph_utilities.feature_reduction:main"
 
 [build-system]
 requires = ["hatchling"]
