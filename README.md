@@ -38,7 +38,7 @@ explainer-selected top-`K` features are more informative than random features.
 | Datasets | `breast_cancer`, `adult` |
 | Black-box models | `xgboost`, `neuralnetwork` |
 | Explainers | `lime`, `shap`, `maple` |
-| Metrics | `ccc_mse`, `random_k_mse` |
+| Metrics | `ccc_mse`, `full_mse`, `top_k_degradation_mse`, `compactness_ratio`, `sufficiency_mse`, `comprehensiveness_abs_drop`, `random_k_mse` |
 | Main config | `config.yml` |
 | Main results doc | `docs/SOTA_ANALYSIS.md` |
 
@@ -126,6 +126,7 @@ experiment:
   suite:
     datasets: [breast_cancer, adult]
     k_features: [4, 5, 6, 7, 8, 9]
+  seeds: [42, 123, 2026]
   n_explain: null
   n_jobs: null
 
@@ -140,8 +141,17 @@ explainers:
 
 metrics:
   - ccc_mse
+  - full_mse
+  - top_k_degradation_mse
+  - compactness_ratio
+  - sufficiency_mse
+  - comprehensiveness_abs_drop
   - name: random_k_mse
 ```
+
+When multiple seeds are configured, the saved markdown report includes both the
+per-seed rows and an aggregate table with mean and standard deviation grouped by
+dataset, model, explainer, and `K`.
 
 For a faster smoke test, set:
 

@@ -210,7 +210,46 @@ def _render_markdown_table(df: pd.DataFrame) -> str:
     return "\n".join([header_row, separator_row, *data_rows])
 
 
-def _render_markdown_report(df, metadata: dict[str, Any], include_header: bool) -> str:
+def _aggregate_seed_results(df: pd.DataFrame) -> pd.DataFrame:
+    if "seed" not in df.columns or df["seed"].nunique() <= 1:
+        return pd.DataFrame()
+
+    group_columns = [
+        column
+        for column in ("dataset", "model", "explainer", "k_features")
+        if column in df.columns
+    ]
+    value_columns = [
+        column
+        for column in df.columns
+        if column not in {*group_columns, "seed", "n_explain"}
+        and pd.api.types.is_numeric_dtype(df[column])
+    ]
+
+    if not group_columns or not value_columns:
+        return pd.DataFrame()
+
+    aggregated = (
+        df.groupby(group_columns)[value_columns]
+        .agg(["mean", "std"])
+        .reset_index()
+    )
+    aggregated.columns = [
+        "_".join(part for part in column if part)
+        if isinstance(column, tuple)
+        else column
+        for column in aggregated.columns
+    ]
+    aggregated = aggregated.fillna(0.0)
+    return aggregated
+
+
+def _render_markdown_report(
+    df: pd.DataFrame,
+    metadata: dict[str, Any],
+    include_header: bool,
+    aggregate_df: pd.DataFrame | None = None,
+) -> str:
     table = _render_markdown_table(df)
     if not include_header:
         return table
@@ -220,10 +259,27 @@ def _render_markdown_report(df, metadata: dict[str, Any], include_header: bool) 
         lines.append(f"- {key}: {value}")
 
     lines.extend(["", "## Results", "", table])
+    if aggregate_df is not None and not aggregate_df.empty:
+        lines.extend(
+            [
+                "",
+                "## Aggregate by Seed",
+                "",
+                _render_markdown_table(aggregate_df),
+            ]
+        )
     return "\n".join(lines)
 
 
 def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
+    seeds = (
+        experiment.get("seeds")
+        or experiment.get("random_states")
+        or [experiment.get("random_state", experiment.get("seed", 42))]
+    )
+    if isinstance(seeds, int):
+        seeds = [seeds]
+
     suite = experiment.get("suite")
     if suite:
         datasets = suite.get("datasets") or []
@@ -233,15 +289,18 @@ def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
 
         runs = []
         for dataset in datasets:
-            # Passiamo l'intera lista di k_values per dataset, invece che fare N cicli
-            runs.append({"dataset": dataset, "k_features": k_values})
+            for seed in seeds:
+                # Passiamo l'intera lista di k_values per dataset, invece che fare N cicli
+                runs.append({"dataset": dataset, "k_features": k_values, "seed": seed})
         return runs
 
     return [
         {
             "dataset": experiment.get("dataset", "breast_cancer"),
             "k_features": [experiment.get("k_features", experiment.get("k", 4))],
+            "seed": seed,
         }
+        for seed in seeds
     ]
 
 
@@ -270,7 +329,7 @@ def main() -> None:
             dataset_name=run["dataset"],
             k_features=run["k_features"],
             test_size=experiment.get("test_size", 0.2),
-            random_state=experiment.get("random_state", experiment.get("seed", 42)),
+            random_state=run["seed"],
             n_explain=experiment.get("n_explain"),
             models=models,
             model_params=model_params,
@@ -284,11 +343,15 @@ def main() -> None:
         all_results.append(orchestrator.run_experiment())
 
     results = pd.concat(all_results, ignore_index=True)
+    aggregate_results = _aggregate_seed_results(results)
 
     print("\n" + "=" * 60)
     print("  Complexity-Calibrated Local Concordance — Results")
     print("=" * 60)
     print(_format_results_table(results))
+    if not aggregate_results.empty:
+        print("\nAggregate by seed")
+        print(_format_results_table(aggregate_results))
     print("=" * 60 + "\n")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -307,6 +370,7 @@ def main() -> None:
         "metrics": _format_config_names(config.get("metrics"), ["ccc_mse"]),
         "timestamp": timestamp,
         "runs": len(runs),
+        "seeds": ", ".join(str(seed) for seed in sorted({run["seed"] for run in runs})),
     }
     if suite:
         metadata["datasets"] = ", ".join(suite.get("datasets", []))
@@ -315,7 +379,7 @@ def main() -> None:
         metadata["dataset"] = experiment.get("dataset", "breast_cancer")
         metadata["k_features"] = experiment.get("k_features", experiment.get("k", 4))
     output_path.write_text(
-        _render_markdown_report(results, metadata, include_header),
+        _render_markdown_report(results, metadata, include_header, aggregate_results),
         encoding="utf-8",
     )
     print(f"Tabella salvata in: {output_path}")

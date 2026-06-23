@@ -15,9 +15,9 @@ Il focus di questo lavoro e' il rapporto tra **faithfulness** e
 > Una spiegazione rimane fedele al modello anche quando viene limitata a un
 > numero ridotto di feature interpretabili da un essere umano?
 
-Dalla revisione in dei papaer emerge un gap specifico: le metriche
-di fidelity tradizionali non distinguono chiaramente tra una spiegazione fedele
-perche' usa molte feature e una spiegazione fedele pur restando compatta.
+Dalla revisione dei paper emerge un gap specifico: le metriche di fidelity
+tradizionali non distinguono chiaramente tra una spiegazione fedele perche' usa
+molte feature e una spiegazione fedele pur restando compatta.
 
 Per affrontare questo gap e' stata proposta e implementata la
 **Complexity-Calibrated Local Concordance**, misurata tramite `ccc_mse`. La
@@ -46,8 +46,22 @@ ccc_mse = mean((f(x) - g_K(x))^2)
 dove:
 
 - `f(x)` e' la probabilita' della classe positiva prodotta dal modello black-box;
-- `g_K(x)` e' la ricostruzione della spiegazione limitata alle top `K` feature;
+- `g(x)` e' la ricostruzione locale additiva prodotta dall'explainer usando
+  tutte le feature;
+- `g_K(x)` e' la stessa ricostruzione locale additiva dopo aver mantenuto solo
+  le top `K` feature;
 - `K` e' il vincolo di complessita' cognitiva.
+
+In altre parole, se l'explainer produce un base value `phi_0` e contributi
+additivi `phi_i(x)`, allora:
+
+```text
+g(x) = phi_0 + sum_i phi_i(x)
+g_K(x) = phi_0 + sum_{i in S_K(x)} phi_i(x)
+```
+
+con `S_K(x)` pari agli indici delle `K` feature con contributo assoluto piu'
+alto.
 
 Un valore piu' basso indica una spiegazione piu' fedele sotto vincolo di
 compattezza.
@@ -80,6 +94,7 @@ Il framework sperimentale valuta spiegazioni su dati tabulari binari.
 | Explainer | `lime`, `shap`, `maple` |
 | Metrica proposta | `ccc_mse` |
 | Baseline | `random_k_mse` |
+| Metriche di confronto | `full_mse`, `top_k_degradation_mse`, `compactness_ratio`, `sufficiency_mse`, `comprehensiveness_abs_drop` |
 | Valori di K | `4, 5, 6, 7, 8, 9` |
 | Istanze spiegate su Breast Cancer | 114 |
 | Istanze spiegate su Adult | 9769 |

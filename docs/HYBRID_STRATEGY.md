@@ -2,13 +2,54 @@
 
 **The Hybrid Intersection:** Quantitative Faithfulness (Functionally-grounded) + Explanation Conciseness (Human-grounded / Cognitive limit).
 
-**The Targeted Gap:** Explanation methods often optimize mathematical fidelity while ignoring the cognitive load placed on human working memory, frequently evaluating feature attribution without constraints on how many features are presented to the user. 
+**The Targeted Gap:** Existing metrics often evaluate either faithfulness or
+compactness, but not the fidelity of the explanation after it has been forced
+into a small top-`K` feature budget. The project focuses on the question:
 
-**Theoretical Definition:** This metric combines the **Local Concordance** of an explanation (how well the white-box explanation mimics the black-box model locally) with a strict **Conciseness** constraint. Instead of allowing an explainer to use all features to perfectly mimic the black box, a penalty factor is applied to the mathematical fidelity score if the complexity of the explanation exceeds a human's working memory threshold limit (e.g., $K$ features). **The explanation is only considered highly scored if it can faithfully mimic the local decision boundary using a human-readable, highly condensed subset of features**.
+```text
+Does a local additive explanation remain faithful to the black-box prediction
+when only its top-K feature contributions are retained?
+```
+
+**Theoretical Definition:** Let `f(x)` be the black-box positive-class
+probability. Let `g(x)` be the additive local reconstruction induced by an
+explainer:
+
+```text
+g(x) = phi_0 + sum_i phi_i(x)
+```
+
+where `phi_0` is the explainer base value/intercept and `phi_i(x)` is the
+feature contribution for instance `x`. The top-`K` reconstruction is:
+
+```text
+g_K(x) = phi_0 + sum_{i in S_K(x)} phi_i(x)
+```
+
+where `S_K(x)` contains the `K` largest absolute contributions. The implemented
+score is:
+
+```text
+ccc_mse = mean_x (f(x) - g_K(x))^2
+```
+
+Lower `ccc_mse` means the explanation preserves local concordance with the
+black-box model under a fixed complexity budget.
 
 **Practical Experimental Design:**
-*   **Dataset:** Tabular clinical data (e.g., predicting heart risk from patient traits).
-*   **AI Task:** Binary classification of high vs. low risk. 
-*   **Human Task:** None required directly for the metric calculation, but the cognitive threshold $K$ is set based on human capacity (e.g., $K=4$). 
-*   **Score Calculation:** Extract the top $K$ features from the explanation. Compute the Hinge loss between the original black-box prediction probability and the local linear explanation model's prediction *restricted strictly to those $K$ features*. A score of 1 indicates perfect local concordance within the human complexity limit, while a score approaching 0 indicates total disagreement.
 
+*   **Datasets:** Tabular binary classification datasets (`breast_cancer`,
+    `adult`).
+*   **AI Task:** Predict the positive-class probability.
+*   **Human Task:** None required directly for metric calculation; `K` acts as a
+    proxy for a human-readable feature budget.
+*   **Score Calculation:** Extract additive contributions from the explainer,
+    retain the top `K` by absolute magnitude, reconstruct `g_K(x)`, and compute
+    MSE against `f(x)`.
+*   **Comparison Metrics:** Report `full_mse`, `top_k_degradation_mse`,
+    `compactness_ratio`, `sufficiency_mse`, `comprehensiveness_abs_drop`, and
+    `random_k_mse` to show what information `ccc_mse` adds over existing
+    evaluation families.
+
+See `docs/METRICS_AND_RESEARCH_GAP.md` for the full notation, state-of-the-art
+metric overview, research gap, and evaluation plan.

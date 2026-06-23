@@ -1,6 +1,3 @@
-import concurrent.futures
-import multiprocessing
-import concurrent.futures
 import time
 from joblib import Parallel, delayed
 import multiprocessing
@@ -33,6 +30,8 @@ EXPLAINER_REGISTRY = {
     "lime": LimeTabularExplainerWrapper,
     "maple": MapleExplainer,
 }
+
+HIGHER_IS_BETTER_METRICS = {"comprehensiveness_abs_drop"}
 
 
 class ExperimentOrchestrator:
@@ -74,6 +73,7 @@ class ExperimentOrchestrator:
         self.feature_names = []
         self.models = {}
         self.model_scores = {}
+        self.feature_baseline = None
 
         if not self.verbose:
             for stage_logger in (
@@ -101,6 +101,7 @@ class ExperimentOrchestrator:
         # Il DataLoader fa tutto il lavoro sporco (lettura, encoding, split, scaling)
         self.X_train, self.X_test, self.y_train, self.y_test = loader.load_data()
         self.feature_names = loader.feature_names
+        self.feature_baseline = np.mean(self.X_train, axis=0)
         
         data_logger.info(
             "Loaded dataset | "
@@ -298,6 +299,8 @@ class ExperimentOrchestrator:
                         weights=weights,
                         intercepts=intercepts,
                         X=X_explain,
+                        model=self.models.get(model_name),
+                        baseline=self.feature_baseline,
                     )
                 except Exception as exc:
                     metric_logger.error(
@@ -315,6 +318,7 @@ class ExperimentOrchestrator:
                     "dataset": self.dataset_name,
                     "model": model_name,
                     "explainer": explainer_name,
+                    "seed": self.random_state,
                     "k_features": current_k,
                     "n_explain": X_explain.shape[0],
                     "accuracy": self.model_scores.get(model_name),
@@ -340,10 +344,15 @@ class ExperimentOrchestrator:
 
         summary_parts = []
         for metric_name in self._metric_result_columns(result_df):
-            best_idx = result_df[metric_name].idxmin()
+            if metric_name in HIGHER_IS_BETTER_METRICS:
+                best_idx = result_df[metric_name].idxmax()
+                direction = "max"
+            else:
+                best_idx = result_df[metric_name].idxmin()
+                direction = "min"
             best_row = result_df.loc[best_idx]
             summary_parts.append(
-                f"{metric_name}: best={best_row[metric_name]:.6f} "
+                f"{metric_name}: best_{direction}={best_row[metric_name]:.6f} "
                 f"({best_row['model']}/{best_row['explainer']})"
             )
 
@@ -354,6 +363,7 @@ class ExperimentOrchestrator:
             "dataset",
             "model",
             "explainer",
+            "seed",
             "k_features",
             "n_explain",
             "accuracy",
@@ -365,6 +375,7 @@ class ExperimentOrchestrator:
         run_logger.info(
             "Starting experiment | "
             f"dataset={self.dataset_name} | "
+            f"seed={self.random_state} | "
             f"K={self.k_features_list} | "
             f"models={','.join(self.models_config)} | "
             f"explainers={','.join(self.explainers)}"

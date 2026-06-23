@@ -17,11 +17,11 @@ Formal Definition
 -----------------
 Let f(x)  be the black-box probability for the positive class.
 Let w_0   be the explainer's intercept (base value).
-Let w     be the explainer's feature weight vector of length F.
-Let S_K   be the index set of the K features with largest |w_i|.
+Let phi   be the explainer's additive contribution vector of length F.
+Let S_K   be the index set of the K features with largest |phi_i(x)|.
 
 Truncated prediction:
-    g_K(x) = w_0 + sum_{i in S_K} w_i * x_i
+    g_K(x) = w_0 + sum_{i in S_K} phi_i(x)
 
 Complexity-Calibrated Local Concordance (mean over N test instances):
     Score = (1/N) * sum_{j=1}^{N} (f(x^j) - g_K(x^j))^2
@@ -34,6 +34,8 @@ from typing import Any, Iterable
 
 import numpy as np
 import numpy.typing as npt
+
+from core.model import BlackBoxModel
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +81,49 @@ class EvaluationMetric(ABC):
     def name(self) -> str:
         """Short identifier for the metric (used for registry/labels)."""
         raise NotImplementedError
+
+    @property
+    def higher_is_better(self) -> bool:
+        """Whether larger values are better for this metric."""
+        return False
+
+
+def _top_k_mask(weights: npt.NDArray[np.float64], k_features: int) -> npt.NDArray[np.bool_]:
+    """Return a boolean mask selecting the top-K absolute contributions per row."""
+    if k_features > weights.shape[1]:
+        raise ValueError(
+            f"k_features ({k_features}) is greater than the number "
+            f"of features ({weights.shape[1]})."
+        )
+
+    sorted_indices = np.argsort(-np.abs(weights), axis=1)
+    selected = sorted_indices[:, :k_features]
+    mask = np.zeros(weights.shape, dtype=bool)
+    row_indices = np.arange(weights.shape[0])[:, None]
+    mask[row_indices, selected] = True
+    return mask
+
+
+def _top_k_weights(
+    weights: npt.NDArray[np.float64],
+    k_features: int,
+) -> npt.NDArray[np.float64]:
+    """Zero-out all but the top-K absolute contributions per row."""
+    truncated = np.zeros_like(weights)
+    mask = _top_k_mask(weights, k_features)
+    truncated[mask] = weights[mask]
+    return truncated
+
+
+def _require_model_and_baseline(
+    model: BlackBoxModel | None,
+    baseline: npt.NDArray[np.float64] | None,
+) -> tuple[BlackBoxModel, npt.NDArray[np.float64]]:
+    if model is None:
+        raise ValueError("This metric requires the black-box model.")
+    if baseline is None:
+        raise ValueError("This metric requires a feature baseline vector.")
+    return model, baseline
 
 
 # ---------------------------------------------------------------------------
@@ -132,16 +177,17 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         weights: npt.NDArray[np.float64],
         intercepts: npt.NDArray[np.float64],
         X: npt.NDArray[np.float64],
+        **_: Any,
     ) -> float:
         """Compute the Complexity-Calibrated Local Concordance score.
 
         Algorithm
         ---------
         For each test instance j:
-          1. Identify S_K: indices of the top-K features by absolute weight.
-          2. Zero-out all weights outside S_K (truncation).
+          1. Identify S_K: indices of the top-K features by absolute contribution.
+          2. Zero-out all contributions outside S_K (truncation).
           3. Compute the truncated local prediction:
-                g_K(x^j) = intercepts[j] + dot(weights_truncated[j], X[j])
+                g_K(x^j) = intercepts[j] + sum(weights_truncated[j])
           4. Compute the squared error: (f_proba[j] - g_K(x^j))^2
 
         Return the mean squared error across all N instances.
@@ -152,8 +198,8 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
             Positive-class probability predictions from the black-box model
             f(x), i.e., ``model.predict_proba(X)[:, 1]``.
         weights : np.ndarray of shape (n_samples, n_features)
-            Per-instance feature attribution weights produced by the explainer
-            (e.g., SHAP values or LIME coefficients).
+            Per-instance additive feature contributions produced by the explainer
+            (e.g., SHAP values or normalized LIME/MAPLE contributions).
         intercepts : np.ndarray of shape (n_samples,)
             Per-instance intercept / base value from the explainer (w_0).
             For SHAP, this is the global ``expected_value``; for LIME, it is
@@ -173,14 +219,11 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         ValueError
             If ``k_features`` exceeds the number of features in ``weights``.
         """
-        if self.k_features > weights.shape[1]:
-            raise ValueError(f"k_features ({self.k_features}) is greater than the number of features ({weights.shape[1]}).")
-
         # 1 & 2: Identify and truncate the feature weights (S_K)
         weights_truncated = self._truncate_weights(weights)
 
-        # 3: Calculate the truncated local prediction: g_K(x) = w_0 + sum(w_i)
-        # Note: SHAP values and LIME local coefficients are already the full attributions 
+        # 3: Calculate the truncated local prediction: g_K(x) = w_0 + sum(phi_i)
+        # Note: SHAP values and LIME local contributions are already the full attributions
         # for the specific instance. They should NOT be multiplied by the raw X values.
         g_K = intercepts + np.sum(weights_truncated, axis=1)
 
@@ -208,19 +251,7 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         np.ndarray of shape (n_samples, n_features)
             Weight matrix with all but the top-K entries zeroed out per row.
         """
-        truncated = np.copy(weights)
-        
-        # Sort the weight indices in descending order based on their absolute values
-        sorted_indices = np.argsort(-np.abs(truncated), axis=1)
-        
-        # Extract the indices of the features that fall outside the cognitive window K
-        indices_to_zero = sorted_indices[:, self.k_features:]
-        
-        # Zero out the weights of these less important features
-        row_indices = np.arange(weights.shape[0])[:, None]
-        truncated[row_indices, indices_to_zero] = 0.0
-        
-        return truncated
+        return _top_k_weights(weights, self.k_features)
 
     def __repr__(self) -> str:
         return f"ComplexityCalibratedConcordance(k_features={self.k_features})"
@@ -261,6 +292,7 @@ class RandomKConcordance(EvaluationMetric):
         weights: npt.NDArray[np.float64],
         intercepts: npt.NDArray[np.float64],
         X: npt.NDArray[np.float64],
+        **_: Any,
     ) -> float:
         if self.k_features > weights.shape[1]:
             raise ValueError(
@@ -303,9 +335,177 @@ class RandomKConcordance(EvaluationMetric):
         return "random_k_mse"
 
 
+class FullLocalFidelityMSE(EvaluationMetric):
+    """MSE between the black-box prediction and the full additive explanation."""
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+        **_: Any,
+    ) -> float:
+        g_full = intercepts + np.sum(weights, axis=1)
+        return float(np.mean((f_proba - g_full) ** 2))
+
+    def __repr__(self) -> str:
+        return "FullLocalFidelityMSE()"
+
+    @property
+    def name(self) -> str:
+        return "full_mse"
+
+
+class TopKDegradationMSE(EvaluationMetric):
+    """Extra reconstruction error introduced by truncating g(x) to g_K(x)."""
+
+    def __init__(self, k_features: int = 4) -> None:
+        if k_features < 1:
+            raise ValueError(f"k_features must be >= 1, got {k_features}.")
+        self.k_features = k_features
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+        **_: Any,
+    ) -> float:
+        g_full = intercepts + np.sum(weights, axis=1)
+        g_k = intercepts + np.sum(_top_k_weights(weights, self.k_features), axis=1)
+        full_mse = np.mean((f_proba - g_full) ** 2)
+        top_k_mse = np.mean((f_proba - g_k) ** 2)
+        return float(top_k_mse - full_mse)
+
+    def __repr__(self) -> str:
+        return f"TopKDegradationMSE(k_features={self.k_features})"
+
+    @property
+    def name(self) -> str:
+        return "top_k_degradation_mse"
+
+
+class CompactnessRatio(EvaluationMetric):
+    """Fraction of interpretable features retained by the top-K explanation."""
+
+    def __init__(self, k_features: int = 4) -> None:
+        if k_features < 1:
+            raise ValueError(f"k_features must be >= 1, got {k_features}.")
+        self.k_features = k_features
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+        **_: Any,
+    ) -> float:
+        if self.k_features > weights.shape[1]:
+            raise ValueError(
+                f"k_features ({self.k_features}) is greater than the number "
+                f"of features ({weights.shape[1]})."
+            )
+        return float(self.k_features / weights.shape[1])
+
+    def __repr__(self) -> str:
+        return f"CompactnessRatio(k_features={self.k_features})"
+
+    @property
+    def name(self) -> str:
+        return "compactness_ratio"
+
+
+class SufficiencyMSE(EvaluationMetric):
+    """Prediction drift when only top-K input features are kept.
+
+    Non-top-K features are replaced with a dataset baseline. Lower values mean
+    the selected features are sufficient to preserve the model prediction.
+    """
+
+    def __init__(self, k_features: int = 4) -> None:
+        if k_features < 1:
+            raise ValueError(f"k_features must be >= 1, got {k_features}.")
+        self.k_features = k_features
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+        *,
+        model: BlackBoxModel | None = None,
+        baseline: npt.NDArray[np.float64] | None = None,
+        **_: Any,
+    ) -> float:
+        model, baseline = _require_model_and_baseline(model, baseline)
+        mask = _top_k_mask(weights, self.k_features)
+        X_keep_top_k = np.broadcast_to(baseline, X.shape).copy()
+        X_keep_top_k[mask] = X[mask]
+        kept_proba = model.predict_proba(X_keep_top_k)[:, 1]
+        return float(np.mean((f_proba - kept_proba) ** 2))
+
+    def __repr__(self) -> str:
+        return f"SufficiencyMSE(k_features={self.k_features})"
+
+    @property
+    def name(self) -> str:
+        return "sufficiency_mse"
+
+
+class ComprehensivenessAbsDrop(EvaluationMetric):
+    """Mean absolute prediction change after removing top-K input features.
+
+    Top-K features are replaced with a dataset baseline. Higher values mean the
+    selected features have stronger influence on the black-box prediction.
+    """
+
+    def __init__(self, k_features: int = 4) -> None:
+        if k_features < 1:
+            raise ValueError(f"k_features must be >= 1, got {k_features}.")
+        self.k_features = k_features
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+        *,
+        model: BlackBoxModel | None = None,
+        baseline: npt.NDArray[np.float64] | None = None,
+        **_: Any,
+    ) -> float:
+        model, baseline = _require_model_and_baseline(model, baseline)
+        mask = _top_k_mask(weights, self.k_features)
+        X_remove_top_k = X.copy()
+        X_remove_top_k[mask] = np.broadcast_to(baseline, X.shape)[mask]
+        removed_proba = model.predict_proba(X_remove_top_k)[:, 1]
+        return float(np.mean(np.abs(f_proba - removed_proba)))
+
+    def __repr__(self) -> str:
+        return f"ComprehensivenessAbsDrop(k_features={self.k_features})"
+
+    @property
+    def name(self) -> str:
+        return "comprehensiveness_abs_drop"
+
+    @property
+    def higher_is_better(self) -> bool:
+        return True
+
+
 METRIC_REGISTRY = {
     "ccc_mse": ComplexityCalibratedConcordance,
     "random_k_mse": RandomKConcordance,
+    "full_mse": FullLocalFidelityMSE,
+    "top_k_degradation_mse": TopKDegradationMSE,
+    "compactness_ratio": CompactnessRatio,
+    "sufficiency_mse": SufficiencyMSE,
+    "comprehensiveness_abs_drop": ComprehensivenessAbsDrop,
 }
 
 
@@ -351,7 +551,8 @@ def build_metrics(
         if metric_cls is None:
             raise ValueError(f"Metrica non supportata: {name}")
 
-        params.setdefault("k_features", k_features)
+        if key not in {"full_mse"}:
+            params.setdefault("k_features", k_features)
         if key == "random_k_mse":
             params.setdefault("random_state", random_state)
 
