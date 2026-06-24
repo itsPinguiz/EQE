@@ -39,8 +39,6 @@ explainers:
 metrics:
   - ccc_mse
   - full_mse
-  - top_k_degradation_mse
-  - compactness_ratio
   - sufficiency_mse
   - comprehensiveness_abs_drop
   - name: random_k_mse

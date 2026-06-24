@@ -350,11 +350,21 @@ def main() -> None:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_dir = Path("results")
     results_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 1 & 2: Archiviazione e impostazione del file di output
+    latest_md = results_dir / "latest.md"
+    archive_dir = results_dir / "archive"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    
+    if latest_md.exists():
+        archive_path = archive_dir / f"results_{timestamp}.md"
+        latest_md.rename(archive_path)
+    
+    output_path = latest_md
+    
     results_cfg = config.get("results", {})
-    prefix = results_cfg.get("filename_prefix", "results")
     include_header = results_cfg.get("include_header", True)
-
-    output_path = results_dir / f"{prefix}_{timestamp}.md"
+    
     suite = experiment.get("suite")
     metadata = {
         "n_explain": experiment.get("n_explain"),
@@ -371,11 +381,20 @@ def main() -> None:
     else:
         metadata["dataset"] = experiment.get("dataset", "breast_cancer")
         metadata["k_features"] = experiment.get("k_features", experiment.get("k", 4))
+    
     output_path.write_text(
         _render_markdown_report(results, metadata, include_header, aggregate_results),
         encoding="utf-8",
     )
     print(f"Tabella salvata in: {output_path}")
+
+    # 3 & 4: Generazione grafici
+    print("Generazione dei grafici...")
+    from core import visualize
+    # Esegue benchmark-summary che usa results/latest.md di default
+    visualize.main(["benchmark-summary"])
+    print("Grafici generati in: results/figures/latest/")
+
 
 
 if __name__ == "__main__":
