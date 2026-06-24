@@ -258,16 +258,8 @@ def _render_markdown_report(
     for key, value in metadata.items():
         lines.append(f"- {key}: {value}")
 
+    lines.extend(["", "## Aggregate by Seed", "", _render_markdown_table(aggregate_df)])
     lines.extend(["", "## Results", "", table])
-    if aggregate_df is not None and not aggregate_df.empty:
-        lines.extend(
-            [
-                "",
-                "## Aggregate by Seed",
-                "",
-                _render_markdown_table(aggregate_df),
-            ]
-        )
     return "\n".join(lines)
 
 
@@ -345,14 +337,15 @@ def main() -> None:
     results = pd.concat(all_results, ignore_index=True)
     aggregate_results = _aggregate_seed_results(results)
 
-    print("\n" + "=" * 60)
-    print("  Complexity-Calibrated Local Concordance — Results")
-    print("=" * 60)
-    print(_format_results_table(results))
     if not aggregate_results.empty:
-        print("\nAggregate by seed")
-        print(_format_results_table(aggregate_results))
-    print("=" * 60 + "\n")
+        # print("\nAggregate by seed")
+        # print(_format_results_table(aggregate_results))
+        pass
+    # print("\n" + "=" * 60)
+    # print("  Complexity-Calibrated Local Concordance — Results")
+    # print("=" * 60)
+    # print(_format_results_table(results))
+    # print("=" * 60 + "\n")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_dir = Path("results")

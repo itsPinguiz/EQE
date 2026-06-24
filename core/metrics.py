@@ -357,67 +357,6 @@ class FullLocalFidelityMSE(EvaluationMetric):
         return "full_mse"
 
 
-class TopKDegradationMSE(EvaluationMetric):
-    """Extra reconstruction error introduced by truncating g(x) to g_K(x)."""
-
-    def __init__(self, k_features: int = 4) -> None:
-        if k_features < 1:
-            raise ValueError(f"k_features must be >= 1, got {k_features}.")
-        self.k_features = k_features
-
-    def compute(
-        self,
-        f_proba: npt.NDArray[np.float64],
-        weights: npt.NDArray[np.float64],
-        intercepts: npt.NDArray[np.float64],
-        X: npt.NDArray[np.float64],
-        **_: Any,
-    ) -> float:
-        g_full = intercepts + np.sum(weights, axis=1)
-        g_k = intercepts + np.sum(_top_k_weights(weights, self.k_features), axis=1)
-        full_mse = np.mean((f_proba - g_full) ** 2)
-        top_k_mse = np.mean((f_proba - g_k) ** 2)
-        return float(top_k_mse - full_mse)
-
-    def __repr__(self) -> str:
-        return f"TopKDegradationMSE(k_features={self.k_features})"
-
-    @property
-    def name(self) -> str:
-        return "top_k_degradation_mse"
-
-
-class CompactnessRatio(EvaluationMetric):
-    """Fraction of interpretable features retained by the top-K explanation."""
-
-    def __init__(self, k_features: int = 4) -> None:
-        if k_features < 1:
-            raise ValueError(f"k_features must be >= 1, got {k_features}.")
-        self.k_features = k_features
-
-    def compute(
-        self,
-        f_proba: npt.NDArray[np.float64],
-        weights: npt.NDArray[np.float64],
-        intercepts: npt.NDArray[np.float64],
-        X: npt.NDArray[np.float64],
-        **_: Any,
-    ) -> float:
-        if self.k_features > weights.shape[1]:
-            raise ValueError(
-                f"k_features ({self.k_features}) is greater than the number "
-                f"of features ({weights.shape[1]})."
-            )
-        return float(self.k_features / weights.shape[1])
-
-    def __repr__(self) -> str:
-        return f"CompactnessRatio(k_features={self.k_features})"
-
-    @property
-    def name(self) -> str:
-        return "compactness_ratio"
-
-
 class SufficiencyMSE(EvaluationMetric):
     """Prediction drift when only top-K input features are kept.
 
@@ -502,8 +441,6 @@ METRIC_REGISTRY = {
     "ccc_mse": ComplexityCalibratedConcordance,
     "random_k_mse": RandomKConcordance,
     "full_mse": FullLocalFidelityMSE,
-    "top_k_degradation_mse": TopKDegradationMSE,
-    "compactness_ratio": CompactnessRatio,
     "sufficiency_mse": SufficiencyMSE,
     "comprehensiveness_abs_drop": ComprehensivenessAbsDrop,
 }

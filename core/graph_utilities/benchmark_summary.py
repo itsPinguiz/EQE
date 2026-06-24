@@ -76,7 +76,7 @@ def _split_markdown_row(line: str) -> list[str]:
 def _coerce_results_types(df: pd.DataFrame) -> pd.DataFrame:
     typed = df.copy()
     integer_columns = ["k_features", "n_explain"]
-    float_columns = ["accuracy", "ccc_mse", "random_k_mse"]
+    float_columns = ["accuracy", "ccc_mse", "random_k_mse", "sufficiency_mse", "comprehensiveness_abs_drop"]
 
     for column in integer_columns:
         typed[column] = pd.to_numeric(typed[column], errors="raise").astype(int)
