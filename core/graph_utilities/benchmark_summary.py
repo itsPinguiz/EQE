@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import warnings
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -19,12 +20,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-DEFAULT_RESULTS_PATH = Path("results/SOTA/results_20260518_141724.md")
+DEFAULT_RESULTS_PATH = Path("results/archive/results_20260518_141724.md")
 DEFAULT_OUTPUT_DIR = Path("results/figures/presentation")
 EXPLAINER_COLORS = {
     "shap": "#2f80ed",
     "maple": "#1f9d55",
     "lime": "#d95f02",
+}
+RESULT_SECTION_TITLES = ("## Results", "## Aggregate by Seed")
+METRIC_ALIASES = {
+    "accuracy": ("accuracy", "accuracy_mean"),
+    "ccc_mse": ("ccc_mse", "ccc_mse_mean"),
+    "random_k_mse": ("random_k_mse", "random_k_mse_mean"),
+    "sufficiency_mse": ("sufficiency_mse", "sufficiency_mse_mean"),
+    "comprehensiveness_abs_drop": (
+        "comprehensiveness_abs_drop",
+        "comprehensiveness_abs_drop_mean",
+    ),
 }
 
 
@@ -43,13 +55,32 @@ def load_results_table(path: str | Path) -> pd.DataFrame:
     if not results_path.exists():
         raise FileNotFoundError(f"Results file not found: {results_path}")
 
-    table_lines: list[str] = []
-    in_results = False
-    for line in results_path.read_text(encoding="utf-8").splitlines():
-        if line.strip() == "## Results":
-            in_results = True
+    lines = results_path.read_text(encoding="utf-8").splitlines()
+    for section_title in RESULT_SECTION_TITLES:
+        df = _read_markdown_table(lines, section_title)
+        if df is None:
             continue
-        if not in_results:
+        normalized = _normalize_results_columns(df)
+        if {"ccc_mse", "random_k_mse"}.issubset(normalized.columns):
+            if section_title != "## Results":
+                warnings.warn(
+                    f"Using {section_title} from {results_path.name} because the primary results table is incomplete.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+            return _coerce_results_types(normalized)
+
+    raise ValueError(f"No usable markdown results table found in: {results_path}")
+
+
+def _read_markdown_table(lines: list[str], section_title: str) -> pd.DataFrame | None:
+    table_lines: list[str] = []
+    in_section = False
+    for line in lines:
+        if line.strip() == section_title:
+            in_section = True
+            continue
+        if not in_section:
             continue
         if line.startswith("|"):
             table_lines.append(line)
@@ -57,7 +88,7 @@ def load_results_table(path: str | Path) -> pd.DataFrame:
             break
 
     if len(table_lines) < 3:
-        raise ValueError(f"No markdown results table found in: {results_path}")
+        return None
 
     header = _split_markdown_row(table_lines[0])
     rows = [
@@ -65,8 +96,19 @@ def load_results_table(path: str | Path) -> pd.DataFrame:
         for line in table_lines[2:]
         if not set(line.replace("|", "").strip()) <= {"-", ":", " "}
     ]
-    df = pd.DataFrame(rows, columns=header)
-    return _coerce_results_types(df)
+    return pd.DataFrame(rows, columns=header)
+
+
+def _normalize_results_columns(df: pd.DataFrame) -> pd.DataFrame:
+    normalized = df.copy()
+    for canonical, aliases in METRIC_ALIASES.items():
+        if canonical in normalized.columns:
+            continue
+        for alias in aliases:
+            if alias in normalized.columns:
+                normalized = normalized.rename(columns={alias: canonical})
+                break
+    return normalized
 
 
 def _split_markdown_row(line: str) -> list[str]:
@@ -79,9 +121,11 @@ def _coerce_results_types(df: pd.DataFrame) -> pd.DataFrame:
     float_columns = ["accuracy", "ccc_mse", "random_k_mse", "sufficiency_mse", "comprehensiveness_abs_drop"]
 
     for column in integer_columns:
-        typed[column] = pd.to_numeric(typed[column], errors="raise").astype(int)
+        if column in typed.columns:
+            typed[column] = pd.to_numeric(typed[column], errors="raise").astype(int)
     for column in float_columns:
-        typed[column] = pd.to_numeric(typed[column], errors="raise")
+        if column in typed.columns:
+            typed[column] = pd.to_numeric(typed[column], errors="raise")
 
     return typed
 
@@ -90,11 +134,22 @@ def generate_summary_charts(df: pd.DataFrame, output_dir: str | Path) -> list[Pa
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    paths = [
-        _plot_ccc_mse_by_k(df, output_path),
-        _plot_explainer_ranking(df, output_path),
-        _plot_random_k_advantage(df, output_path),
+    plot_specs = [
+        (_plot_ccc_mse_by_k, {"dataset", "model", "explainer", "k_features", "ccc_mse"}),
+        (_plot_explainer_ranking, {"dataset", "explainer", "ccc_mse"}),
+        (_plot_random_k_advantage, {"dataset", "explainer", "k_features", "ccc_mse", "random_k_mse"}),
     ]
+    paths: list[Path] = []
+    for plot_func, required_columns in plot_specs:
+        missing = required_columns - set(df.columns)
+        if missing:
+            warnings.warn(
+                f"Skipping {plot_func.__name__}: missing columns {sorted(missing)}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            continue
+        paths.append(plot_func(df, output_path))
     return paths
 
 
