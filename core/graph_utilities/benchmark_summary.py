@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-DEFAULT_RESULTS_PATH = Path("results/archive/results_20260518_141724.md")
+DEFAULT_RESULTS_PATH = Path("results/latest.md")
 DEFAULT_OUTPUT_DIR = Path("results/figures/presentation")
 EXPLAINER_COLORS = {
     "shap": "#2f80ed",
@@ -46,8 +46,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         description="Create summary charts from a saved EQE markdown results table.",
     )
     parser.add_argument("--results", default=str(DEFAULT_RESULTS_PATH))
-    parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
+    parser.add_argument("--output-dir", default=None)
     return parser.parse_args(argv)
+
+
+def _default_output_dir_for_results(results_path: Path) -> Path:
+    if results_path.name == "latest.md":
+        return Path("results/figures/latest")
+    return Path("results/figures") / results_path.stem
 
 
 def load_results_table(path: str | Path) -> pd.DataFrame:
@@ -280,8 +286,10 @@ def _plot_random_k_advantage(df: pd.DataFrame, output_dir: Path) -> Path:
 
 def main(argv: Sequence[str] | None = None) -> None:
     args = parse_args(argv)
-    df = load_results_table(args.results)
-    paths = generate_summary_charts(df, args.output_dir)
+    results_path = Path(args.results)
+    output_dir = Path(args.output_dir) if args.output_dir else _default_output_dir_for_results(results_path)
+    df = load_results_table(results_path)
+    paths = generate_summary_charts(df, output_dir)
     for path in paths:
         print(f"Saved benchmark summary figure: {path}")
 

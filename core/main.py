@@ -391,7 +391,7 @@ def main() -> None:
     # 3 & 4: Generazione grafici
     print("Generazione dei grafici...")
     from core import visualize
-    # Esegue benchmark-summary che usa results/latest.md di default
+    # Esegue benchmark-summary sul results/latest.md corrente
     visualize.main(["benchmark-summary"])
     print("Grafici generati in: results/figures/latest/")
 
