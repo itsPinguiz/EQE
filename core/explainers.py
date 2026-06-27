@@ -89,6 +89,8 @@ class ShapExplainer(BaseExplainer):
     def _predict_proba_pos_class(self, x):
         """Wrapper method to return only positive class probabilities.
         Implemented as an instance method to allow multiprocessing pickling."""
+        # Convert memmap to regular array for SHAP compatibility
+        x = np.asarray(x)
         return self.model.predict_proba(x)[:, 1]
         
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:

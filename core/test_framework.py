@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 from core.data_loader import AdultIncomeLoader, BreastCancerLoader
 from core.explainers import LimeTabularExplainerWrapper, MapleExplainer, ShapExplainer
 from core.metrics import build_metrics
-from core.model import NeuralNetworkModel, XGBoostModel
+from core.model import BlackBoxModel, NeuralNetworkModel, XGBoostModel
 from core.utility.log import ExperimentLogger
 
 run_logger = ExperimentLogger.get_logger("Run")
@@ -193,6 +193,48 @@ class ExperimentOrchestrator:
             **params,
         )
 
+    def _explain_single_pair(
+        self,
+        model_name: str,
+        model: BlackBoxModel,
+        explainer_name: str,
+        X_explain: np.ndarray,
+    ) -> tuple[str, str, dict | None]:
+        """Generate explanations for a single (model, explainer) pair.
+
+        Returns a tuple (model_name, explainer_name, payload) where payload is None on error.
+        This function is designed to be called in parallel via joblib.
+        """
+        try:
+            started_at = time.perf_counter()
+            explain_logger.info(
+                "Started | "
+                f"model={model_name} | "
+                f"explainer={explainer_name}"
+            )
+            explainer = self._init_explainer(explainer_name, model)
+            weights, intercepts = explainer.explain(X_explain)
+            elapsed = time.perf_counter() - started_at
+            explain_logger.info(
+                "Finished | "
+                f"model={model_name} | "
+                f"explainer={explainer_name} | "
+                f"shape={weights.shape[0]}x{weights.shape[1]} | "
+                f"time={elapsed:.1f}s"
+            )
+            return model_name, explainer_name, {
+                "weights": weights,
+                "intercepts": intercepts,
+            }
+        except Exception as exc:
+            explain_logger.error(
+                "Explanation error | "
+                f"model={model_name} | "
+                f"explainer={explainer_name} | "
+                f"error={exc}"
+            )
+            return model_name, explainer_name, None
+
     def generate_explanations(self, X_explain: np.ndarray) -> dict:
         """Generate and return raw explanations for all model/explainer pairs.
 
@@ -211,63 +253,35 @@ class ExperimentOrchestrator:
             f"cache=true"
         )
 
-        explanations: dict = {}
-
+        # Pre-compute f_proba for all models (shared across explainers)
+        f_probas: dict[str, np.ndarray] = {}
         for model_name, model in self.models.items():
             try:
-                f_proba = model.predict_proba(X_explain)[:, 1]
+                f_probas[model_name] = model.predict_proba(X_explain)[:, 1]
             except Exception as exc:
                 explain_logger.error(f"Probability error | model={model_name} | error={exc}")
-                continue
 
-            for explainer_name in self.explainers:
-                try:
-                    started_at = time.perf_counter()
-                    explain_logger.info(
-                        "Started | "
-                        f"model={model_name} | "
-                        f"explainer={explainer_name} | "
-                        f"jobs={self.n_jobs or 'auto'}"
-                    )
-                    explainer = self._init_explainer(explainer_name, model)
-                    
-                    # 1. PARALLELIZATION (True Multi-Processing, Joblib fallback)
-                    # Split X_explain into chunks based on the number of available CPU cores
-                    n_cores = self.n_jobs or multiprocessing.cpu_count() or 4
-                    n_cores = max(1, min(n_cores, X_explain.shape[0] or 1))
-                    chunks = np.array_split(X_explain, n_cores)
-                    
-                    # Using joblib.Parallel allows serializing lambdas (used natively by LIME)
-                    # bounding deadlocks and pickling problems automatically.
-                    results = Parallel(n_jobs=n_cores, backend="loky")(
-                        delayed(explainer.explain)(chunk) for chunk in chunks
-                    )
-                    
-                    # Reassemble the results keeping the original order
-                    weights = np.vstack([res[0] for res in results])
-                    intercepts = np.concatenate([res[1] for res in results])
-                    elapsed = time.perf_counter() - started_at
-                    explain_logger.info(
-                        "Finished | "
-                        f"model={model_name} | "
-                        f"explainer={explainer_name} | "
-                        f"shape={weights.shape[0]}x{weights.shape[1]} | "
-                        f"time={elapsed:.1f}s"
-                    )
-                    
-                except Exception as exc:
-                    explain_logger.error(
-                        "Explanation error | "
-                        f"model={model_name} | "
-                        f"explainer={explainer_name} | "
-                        f"error={exc}"
-                    )
-                    continue
+        # Build task list: one task per (model, explainer) pair
+        tasks = [
+            (model_name, model, explainer_name, X_explain)
+            for model_name, model in self.models.items()
+            for explainer_name in self.explainers
+        ]
 
+        # Parallelize at the outer level (model, explainer pairs)
+        n_jobs = self.n_jobs or -1  # -1 = all cores
+        results = Parallel(n_jobs=n_jobs, backend="loky")(
+            delayed(self._explain_single_pair)(model_name, model, explainer_name, X_explain)
+            for model_name, model, explainer_name, X_explain in tasks
+        )
+
+        explanations: dict = {}
+        for model_name, explainer_name, payload in results:
+            if payload is not None:
                 explanations[(model_name, explainer_name)] = {
-                    "weights": weights,
-                    "intercepts": intercepts,
-                    "f_proba": f_proba,
+                    "weights": payload["weights"],
+                    "intercepts": payload["intercepts"],
+                    "f_proba": f_probas.get(model_name),
                 }
 
         return explanations

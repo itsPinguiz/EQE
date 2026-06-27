@@ -19,6 +19,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 
 # Permette di eseguire anche: `python core/main.py`
 sys.path.append(str(Path(__file__).parent.parent))
@@ -314,9 +315,9 @@ def main() -> None:
     explainers, explainer_params = _normalize_explainers(explainers_cfg)
 
     runs = _build_run_matrix(experiment)
-    all_results = []
 
-    for run in runs:
+    def _run_single(run: dict) -> pd.DataFrame:
+        """Execute a single experiment run (dataset + seed combination)."""
         orchestrator = ExperimentOrchestrator(
             dataset_name=run["dataset"],
             k_features=run["k_features"],
@@ -331,8 +332,13 @@ def main() -> None:
             n_jobs=experiment.get("n_jobs"),
             verbose=experiment.get("verbose", True),
         )
+        return orchestrator.run_experiment()
 
-        all_results.append(orchestrator.run_experiment())
+    # Parallelize at the seed level (each run is independent)
+    n_jobs = experiment.get("n_jobs", -1)
+    all_results = Parallel(n_jobs=n_jobs, backend="loky")(
+        delayed(_run_single)(run) for run in runs
+    )
 
     results = pd.concat(all_results, ignore_index=True)
     aggregate_results = _aggregate_seed_results(results)
