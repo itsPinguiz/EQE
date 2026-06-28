@@ -1552,3 +1552,270 @@
 2026-06-27 16:26:46 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
 2026-06-27 16:29:33 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=9769x100 | time=174.1s
 2026-06-27 16:29:43 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=9769x100 | time=177.4s
+2026-06-27 16:52:31 | INFO    | Run       | Starting experiment | dataset=breast_cancer | seed=42 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 16:52:31 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-06-27 16:52:31 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-06-27 16:52:31 | INFO    | Model     | Training models | count=2
+2026-06-27 16:52:31 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-06-27 16:52:32 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9649
+2026-06-27 16:52:32 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-06-27 16:52:37 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 16:52:37 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 16:52:37 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 16:52:37 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 16:52:37 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 16:52:37 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 16:52:45 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=7.9s
+2026-06-27 16:52:45 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=8.0s
+2026-06-27 16:52:51 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=13.9s
+2026-06-27 16:52:51 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=14.1s
+2026-06-27 16:53:17 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=40.0s
+2026-06-27 16:53:40 | INFO    | Run       | Starting experiment | dataset=breast_cancer | seed=42 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 16:53:40 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-06-27 16:53:40 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-06-27 16:53:40 | INFO    | Model     | Training models | count=2
+2026-06-27 16:53:40 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-06-27 16:53:41 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9649
+2026-06-27 16:53:41 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-06-27 16:53:46 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 16:53:46 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 16:53:46 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 16:53:46 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 16:53:46 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 16:53:46 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 16:53:55 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=9.4s
+2026-06-27 16:53:56 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=9.3s
+2026-06-27 16:54:02 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=15.9s
+2026-06-27 16:54:02 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=16.3s
+2026-06-27 16:54:34 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=47.8s
+2026-06-27 16:54:44 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=57.6s
+2026-06-27 16:54:44 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.031340 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.004856 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.163987 (xgboost/shap) | random_k_mse: best_min=0.167237 (xgboost/shap)
+2026-06-27 16:54:44 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.016997 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.002131 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.229063 (neuralnetwork/shap) | random_k_mse: best_min=0.155458 (xgboost/shap)
+2026-06-27 16:54:44 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.008782 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000967 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.298257 (neuralnetwork/shap) | random_k_mse: best_min=0.143565 (xgboost/shap)
+2026-06-27 16:54:44 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.004168 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001167 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.357943 (neuralnetwork/shap) | random_k_mse: best_min=0.133200 (xgboost/shap)
+2026-06-27 16:54:44 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.001587 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000701 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.424652 (neuralnetwork/shap) | random_k_mse: best_min=0.122602 (xgboost/shap)
+2026-06-27 16:54:44 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000328 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001119 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.500479 (neuralnetwork/shap) | random_k_mse: best_min=0.112227 (xgboost/shap)
+2026-06-27 16:54:44 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 16:54:44 | INFO    | Run       | Starting experiment | dataset=breast_cancer | seed=123 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 16:54:44 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-06-27 16:54:44 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-06-27 16:54:44 | INFO    | Model     | Training models | count=2
+2026-06-27 16:54:44 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9737
+2026-06-27 16:54:45 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9912
+2026-06-27 16:54:45 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-06-27 16:54:49 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 16:54:49 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 16:54:49 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 16:54:49 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 16:54:49 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 16:54:49 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 16:54:57 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=8.1s
+2026-06-27 16:54:57 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=8.2s
+2026-06-27 16:55:03 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=14.0s
+2026-06-27 16:55:03 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=14.2s
+2026-06-27 16:55:28 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=38.7s
+2026-06-27 16:55:41 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=51.9s
+2026-06-27 16:55:41 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.027909 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000243 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.249658 (xgboost/shap) | random_k_mse: best_min=0.171470 (xgboost/shap)
+2026-06-27 16:55:41 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.015545 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000258 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.371428 (xgboost/shap) | random_k_mse: best_min=0.160379 (xgboost/shap)
+2026-06-27 16:55:41 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.007947 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000267 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.475406 (xgboost/shap) | random_k_mse: best_min=0.148564 (xgboost/shap)
+2026-06-27 16:55:41 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.003486 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000267 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.531311 (xgboost/shap) | random_k_mse: best_min=0.137187 (xgboost/shap)
+2026-06-27 16:55:41 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.001223 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000269 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.581672 (xgboost/shap) | random_k_mse: best_min=0.126371 (xgboost/shap)
+2026-06-27 16:55:41 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000224 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000272 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.632468 (xgboost/shap) | random_k_mse: best_min=0.115244 (xgboost/shap)
+2026-06-27 16:55:41 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 16:55:41 | INFO    | Run       | Starting experiment | dataset=breast_cancer | seed=2026 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 16:55:41 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-06-27 16:55:41 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-06-27 16:55:41 | INFO    | Model     | Training models | count=2
+2026-06-27 16:55:41 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9737
+2026-06-27 16:55:42 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9737
+2026-06-27 16:55:42 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-06-27 16:55:42 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 16:55:42 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 16:55:46 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 16:55:46 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 16:55:46 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 16:55:46 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 16:55:50 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=8.5s
+2026-06-27 16:55:54 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=8.0s
+2026-06-27 16:56:00 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=13.5s
+2026-06-27 16:56:00 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=13.7s
+2026-06-27 16:56:24 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=38.4s
+2026-06-27 16:56:34 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=51.9s
+2026-06-27 16:56:34 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.026726 (xgboost/shap) | full_mse: best_min=0.000000 (neuralnetwork/shap) | sufficiency_mse: best_min=0.002950 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.306330 (xgboost/shap) | random_k_mse: best_min=0.165190 (xgboost/shap)
+2026-06-27 16:56:34 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.015325 (xgboost/shap) | full_mse: best_min=0.000000 (neuralnetwork/shap) | sufficiency_mse: best_min=0.002369 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.414228 (xgboost/shap) | random_k_mse: best_min=0.153599 (xgboost/shap)
+2026-06-27 16:56:34 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.007840 (xgboost/shap) | full_mse: best_min=0.000000 (neuralnetwork/shap) | sufficiency_mse: best_min=0.001169 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.504233 (xgboost/shap) | random_k_mse: best_min=0.142410 (xgboost/shap)
+2026-06-27 16:56:34 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.003539 (xgboost/shap) | full_mse: best_min=0.000000 (neuralnetwork/shap) | sufficiency_mse: best_min=0.000936 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.576149 (xgboost/shap) | random_k_mse: best_min=0.131436 (xgboost/shap)
+2026-06-27 16:56:34 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.001183 (xgboost/shap) | full_mse: best_min=0.000000 (neuralnetwork/shap) | sufficiency_mse: best_min=0.001759 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.623148 (xgboost/shap) | random_k_mse: best_min=0.121081 (xgboost/shap)
+2026-06-27 16:56:34 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000285 (xgboost/shap) | full_mse: best_min=0.000000 (neuralnetwork/shap) | sufficiency_mse: best_min=0.000636 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.645864 (xgboost/shap) | random_k_mse: best_min=0.111260 (xgboost/shap)
+2026-06-27 16:56:34 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 16:56:34 | INFO    | Run       | Starting experiment | dataset=adult | seed=42 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 16:56:34 | INFO    | Data      | Loading dataset | name=adult
+2026-06-27 16:56:35 | INFO    | Data      | Loaded dataset | train=39073 | test=9769 | features=100
+2026-06-27 16:56:35 | INFO    | Model     | Training models | count=2
+2026-06-27 16:56:35 | INFO    | Model     | Trained | model=xgboost | accuracy=0.8724
+2026-06-27 16:58:58 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.8219
+2026-06-27 16:58:58 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=9769 | cache=true
+2026-06-27 16:58:58 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 16:58:58 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 16:58:58 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 16:58:58 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 16:58:58 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 16:58:58 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 17:01:35 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=9769x100 | time=157.1s
+2026-06-27 17:01:36 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=9769x100 | time=158.1s
+2026-06-27 17:58:21 | INFO    | Run       | Starting experiment | dataset=adult | seed=2026 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 17:58:21 | INFO    | Data      | Loading dataset | name=adult
+2026-06-27 17:58:21 | INFO    | Run       | Starting experiment | dataset=breast_cancer | seed=123 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 17:58:21 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-06-27 17:58:21 | INFO    | Run       | Starting experiment | dataset=adult | seed=123 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 17:58:21 | INFO    | Data      | Loading dataset | name=adult
+2026-06-27 17:58:21 | INFO    | Run       | Starting experiment | dataset=breast_cancer | seed=2026 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 17:58:21 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-06-27 17:58:21 | INFO    | Run       | Starting experiment | dataset=breast_cancer | seed=42 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 17:58:21 | INFO    | Data      | Loading dataset | name=breast_cancer
+2026-06-27 17:58:21 | INFO    | Run       | Starting experiment | dataset=adult | seed=42 | K=[4, 5, 6, 7, 8, 9] | models=xgboost,neuralnetwork | explainers=lime,shap,maple
+2026-06-27 17:58:21 | INFO    | Data      | Loading dataset | name=adult
+2026-06-27 17:58:21 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-06-27 17:58:21 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-06-27 17:58:21 | INFO    | Model     | Training models | count=2
+2026-06-27 17:58:21 | INFO    | Model     | Training models | count=2
+2026-06-27 17:58:21 | INFO    | Data      | Loaded dataset | train=455 | test=114 | features=30
+2026-06-27 17:58:21 | INFO    | Model     | Training models | count=2
+2026-06-27 17:58:21 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9737
+2026-06-27 17:58:21 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9561
+2026-06-27 17:58:21 | INFO    | Model     | Trained | model=xgboost | accuracy=0.9737
+2026-06-27 17:58:22 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9649
+2026-06-27 17:58:22 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-06-27 17:58:22 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9912
+2026-06-27 17:58:22 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-06-27 17:58:22 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.9737
+2026-06-27 17:58:22 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=114 | cache=true
+2026-06-27 17:58:22 | INFO    | Data      | Loaded dataset | train=39073 | test=9769 | features=100
+2026-06-27 17:58:22 | INFO    | Model     | Training models | count=2
+2026-06-27 17:58:22 | INFO    | Data      | Loaded dataset | train=39073 | test=9769 | features=100
+2026-06-27 17:58:22 | INFO    | Model     | Training models | count=2
+2026-06-27 17:58:22 | INFO    | Data      | Loaded dataset | train=39073 | test=9769 | features=100
+2026-06-27 17:58:22 | INFO    | Model     | Training models | count=2
+2026-06-27 17:58:24 | INFO    | Model     | Trained | model=xgboost | accuracy=0.8724
+2026-06-27 17:58:24 | INFO    | Model     | Trained | model=xgboost | accuracy=0.8754
+2026-06-27 17:58:24 | INFO    | Model     | Trained | model=xgboost | accuracy=0.8741
+2026-06-27 17:59:20 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 17:59:21 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 17:59:22 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 17:59:23 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 17:59:23 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 17:59:23 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 17:59:23 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 17:59:23 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 17:59:24 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 17:59:24 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 17:59:24 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 17:59:25 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 17:59:25 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 17:59:26 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 17:59:26 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 17:59:26 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 17:59:27 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 17:59:29 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 17:59:41 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=17.1s
+2026-06-27 17:59:44 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=20.5s
+2026-06-27 17:59:46 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=19.6s
+2026-06-27 17:59:49 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=114x30 | time=23.5s
+2026-06-27 17:59:52 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=29.2s
+2026-06-27 17:59:53 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=114x30 | time=26.9s
+2026-06-27 17:59:57 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=32.0s
+2026-06-27 17:59:59 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=33.2s
+2026-06-27 18:00:00 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=38.7s
+2026-06-27 18:00:03 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=34.0s
+2026-06-27 18:00:04 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=114x30 | time=40.9s
+2026-06-27 18:00:06 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=114x30 | time=38.6s
+2026-06-27 18:00:50 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=87.3s
+2026-06-27 18:00:53 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=89.7s
+2026-06-27 18:00:58 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.8181
+2026-06-27 18:00:58 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=9769 | cache=true
+2026-06-27 18:01:00 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=114x30 | time=96.9s
+2026-06-27 18:01:03 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.8212
+2026-06-27 18:01:03 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=9769 | cache=true
+2026-06-27 18:01:06 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=106.5s
+2026-06-27 18:01:06 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.026272 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.003008 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.297718 (xgboost/shap) | random_k_mse: best_min=0.165162 (xgboost/shap)
+2026-06-27 18:01:07 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.014876 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.002431 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.428665 (xgboost/shap) | random_k_mse: best_min=0.153712 (xgboost/shap)
+2026-06-27 18:01:07 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.007628 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001198 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.494176 (xgboost/shap) | random_k_mse: best_min=0.142542 (xgboost/shap)
+2026-06-27 18:01:07 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.003443 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.002338 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.574001 (xgboost/shap) | random_k_mse: best_min=0.131661 (xgboost/shap)
+2026-06-27 18:01:07 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.001194 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001416 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.619952 (xgboost/shap) | random_k_mse: best_min=0.121230 (xgboost/shap)
+2026-06-27 18:01:07 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000248 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000650 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.642694 (xgboost/shap) | random_k_mse: best_min=0.111381 (xgboost/shap)
+2026-06-27 18:01:07 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 18:01:10 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 18:01:10 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 18:01:10 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 18:01:10 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 18:01:10 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 18:01:10 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 18:01:11 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=107.3s
+2026-06-27 18:01:12 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.031399 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.002613 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.167809 (neuralnetwork/shap) | random_k_mse: best_min=0.167275 (xgboost/shap)
+2026-06-27 18:01:12 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.017277 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001865 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.227431 (neuralnetwork/shap) | random_k_mse: best_min=0.155467 (xgboost/shap)
+2026-06-27 18:01:13 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.009031 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001559 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.294875 (neuralnetwork/shap) | random_k_mse: best_min=0.143685 (xgboost/shap)
+2026-06-27 18:01:13 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.004270 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001267 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.359742 (neuralnetwork/shap) | random_k_mse: best_min=0.133254 (xgboost/shap)
+2026-06-27 18:01:13 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.001646 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.001207 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.416796 (neuralnetwork/shap) | random_k_mse: best_min=0.122630 (xgboost/shap)
+2026-06-27 18:01:13 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000335 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000924 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.491088 (neuralnetwork/shap) | random_k_mse: best_min=0.112276 (xgboost/shap)
+2026-06-27 18:01:13 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 18:01:14 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=114x30 | time=110.3s
+2026-06-27 18:01:15 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.028248 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000182 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.259756 (xgboost/shap) | random_k_mse: best_min=0.171432 (xgboost/shap)
+2026-06-27 18:01:15 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.015739 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000238 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.365492 (xgboost/shap) | random_k_mse: best_min=0.160206 (xgboost/shap)
+2026-06-27 18:01:15 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.007972 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000259 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.479827 (xgboost/shap) | random_k_mse: best_min=0.148409 (xgboost/shap)
+2026-06-27 18:01:15 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 18:01:15 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.003524 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000187 (xgboost/shap) | comprehensiveness_abs_drop: best_max=0.540420 (xgboost/shap) | random_k_mse: best_min=0.136990 (xgboost/shap)
+2026-06-27 18:01:15 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.001210 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000270 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.581818 (xgboost/shap) | random_k_mse: best_min=0.126213 (xgboost/shap)
+2026-06-27 18:01:15 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 18:01:15 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 18:01:15 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 18:01:15 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000230 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.000272 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.616985 (xgboost/shap) | random_k_mse: best_min=0.115075 (xgboost/shap)
+2026-06-27 18:01:15 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 18:01:15 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 18:01:15 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 18:02:42 | INFO    | Model     | Trained | model=neuralnetwork | accuracy=0.8231
+2026-06-27 18:02:42 | INFO    | Explain   | Generating explanations | models=2 | explainers=3 | samples=9769 | cache=true
+2026-06-27 18:03:01 | INFO    | Explain   | Started | model=xgboost | explainer=lime
+2026-06-27 18:03:04 | INFO    | Explain   | Started | model=xgboost | explainer=maple
+2026-06-27 18:03:06 | INFO    | Explain   | Started | model=neuralnetwork | explainer=lime
+2026-06-27 18:03:06 | INFO    | Explain   | Started | model=neuralnetwork | explainer=maple
+2026-06-27 18:03:06 | INFO    | Explain   | Started | model=neuralnetwork | explainer=shap
+2026-06-27 18:03:07 | INFO    | Explain   | Started | model=xgboost | explainer=shap
+2026-06-27 18:07:28 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=9769x100 | time=378.1s
+2026-06-27 18:07:37 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=9769x100 | time=387.4s
+2026-06-27 18:07:56 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=9769x100 | time=401.5s
+2026-06-27 18:07:57 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=9769x100 | time=401.6s
+2026-06-27 18:08:58 | INFO    | Explain   | Finished | model=xgboost | explainer=maple | shape=9769x100 | time=353.6s
+2026-06-27 18:08:58 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=maple | shape=9769x100 | time=352.2s
+2026-06-27 19:00:35 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=9769x100 | time=3560.5s
+2026-06-27 19:00:49 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=9769x100 | time=3578.9s
+2026-06-27 19:01:42 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=lime | shape=9769x100 | time=3516.0s
+2026-06-27 19:02:27 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=9769x100 | time=3672.0s
+2026-06-27 19:02:38 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=9769x100 | time=3687.8s
+2026-06-27 19:03:32 | INFO    | Explain   | Finished | model=xgboost | explainer=lime | shape=9769x100 | time=3631.1s
+2026-06-27 20:38:54 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=9769x100 | time=9463.6s
+2026-06-27 20:39:24 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=9769x100 | time=9488.8s
+2026-06-27 20:41:09 | INFO    | Explain   | Finished | model=neuralnetwork | explainer=shap | shape=9769x100 | time=9482.9s
+2026-06-27 21:22:31 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=9769x100 | time=12075.6s
+2026-06-27 21:22:39 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.003228 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.047702 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.329769 (neuralnetwork/shap) | random_k_mse: best_min=0.032773 (xgboost/maple)
+2026-06-27 21:22:46 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.001510 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.036576 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.335733 (neuralnetwork/shap) | random_k_mse: best_min=0.032604 (xgboost/maple)
+2026-06-27 21:22:53 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.000740 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.031767 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.343965 (neuralnetwork/shap) | random_k_mse: best_min=0.032431 (xgboost/maple)
+2026-06-27 21:23:01 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.000354 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.031070 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.349062 (neuralnetwork/shap) | random_k_mse: best_min=0.032251 (xgboost/maple)
+2026-06-27 21:23:08 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.000140 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.021135 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.354711 (neuralnetwork/shap) | random_k_mse: best_min=0.032084 (xgboost/maple)
+2026-06-27 21:23:16 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000033 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.021135 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.364088 (neuralnetwork/shap) | random_k_mse: best_min=0.031916 (xgboost/maple)
+2026-06-27 21:23:16 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 21:23:32 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=9769x100 | time=12142.0s
+2026-06-27 21:23:40 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.002639 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.062913 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.297026 (neuralnetwork/shap) | random_k_mse: best_min=0.051028 (xgboost/maple)
+2026-06-27 21:23:47 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.001253 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.055021 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.317977 (neuralnetwork/shap) | random_k_mse: best_min=0.050740 (xgboost/maple)
+2026-06-27 21:23:54 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.000637 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.047634 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.339512 (neuralnetwork/shap) | random_k_mse: best_min=0.050475 (xgboost/maple)
+2026-06-27 21:24:01 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.000305 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.040899 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.358578 (neuralnetwork/shap) | random_k_mse: best_min=0.050132 (xgboost/maple)
+2026-06-27 21:24:09 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.000119 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.035676 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.371729 (neuralnetwork/shap) | random_k_mse: best_min=0.049793 (xgboost/maple)
+2026-06-27 21:24:16 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000027 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.032421 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.388485 (neuralnetwork/shap) | random_k_mse: best_min=0.049441 (xgboost/maple)
+2026-06-27 21:24:16 | INFO    | Run       | Experiment concluded | rows=36
+2026-06-27 21:24:57 | INFO    | Explain   | Finished | model=xgboost | explainer=shap | shape=9769x100 | time=12109.7s
+2026-06-27 21:25:04 | INFO    | Metric    | K=4 summary | ccc_mse: best_min=0.002763 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.061662 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.305554 (neuralnetwork/shap) | random_k_mse: best_min=0.035140 (xgboost/maple)
+2026-06-27 21:25:11 | INFO    | Metric    | K=5 summary | ccc_mse: best_min=0.001387 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.052902 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.323773 (neuralnetwork/shap) | random_k_mse: best_min=0.034946 (xgboost/maple)
+2026-06-27 21:25:18 | INFO    | Metric    | K=6 summary | ccc_mse: best_min=0.000730 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.047012 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.341267 (neuralnetwork/shap) | random_k_mse: best_min=0.034774 (xgboost/maple)
+2026-06-27 21:25:25 | INFO    | Metric    | K=7 summary | ccc_mse: best_min=0.000357 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.041181 (neuralnetwork/shap) | comprehensiveness_abs_drop: best_max=0.364705 (neuralnetwork/shap) | random_k_mse: best_min=0.034588 (xgboost/maple)
+2026-06-27 21:25:32 | INFO    | Metric    | K=8 summary | ccc_mse: best_min=0.000143 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.023668 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.382351 (neuralnetwork/shap) | random_k_mse: best_min=0.034401 (xgboost/maple)
+2026-06-27 21:25:39 | INFO    | Metric    | K=9 summary | ccc_mse: best_min=0.000034 (xgboost/shap) | full_mse: best_min=0.000000 (xgboost/shap) | sufficiency_mse: best_min=0.023668 (xgboost/maple) | comprehensiveness_abs_drop: best_max=0.397120 (neuralnetwork/shap) | random_k_mse: best_min=0.034210 (xgboost/maple)
+2026-06-27 21:25:39 | INFO    | Run       | Experiment concluded | rows=36

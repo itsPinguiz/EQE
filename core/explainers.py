@@ -79,7 +79,10 @@ class ShapExplainer(BaseExplainer):
                 background = shap.sample(background_data, background_size)
             else:
                 raise ValueError("background_strategy must be 'sample' or 'kmeans'.")
-            
+        
+        # Convert memmap to regular array for SHAP compatibility
+        background = np.asarray(background)
+        
         # We need a named instance method to allow ProcessPoolExecutor pickling
         self.explainer = shap.KernelExplainer(
             self._predict_proba_pos_class, 
@@ -94,6 +97,8 @@ class ShapExplainer(BaseExplainer):
         return self.model.predict_proba(x)[:, 1]
         
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        # Convert memmap to regular array for SHAP compatibility
+        X = np.asarray(X)
         # Calculate SHAP values (feature attributions)
         try:
             shap_out = self.explainer.shap_values(X, silent=self.silent)
@@ -140,7 +145,7 @@ class ShapExplainer(BaseExplainer):
 class LimeTabularExplainerWrapper(BaseExplainer):
     """Wrapper for LIME (Local Interpretable Model-agnostic Explanations)."""
     
-    def __init__(self, model: BlackBoxModel, background_data: npt.NDArray[np.float64], feature_names: list[str] = None):
+    def __init__(self, model: BlackBoxModel, background_data: npt.NDArray[np.float64], feature_names: list[str] = None, n_jobs: int = 1):
         super().__init__(model)
         if lime is None:
             raise ImportError("Please install 'lime' library to use LimeTabularExplainerWrapper.")
@@ -154,27 +159,41 @@ class LimeTabularExplainerWrapper(BaseExplainer):
             feature_names=feature_names,
             mode='classification'
         )
+        self.n_jobs = n_jobs
+        
+    def _explain_single(self, i: int, x_row: np.ndarray, n_features: int) -> tuple[np.ndarray, float]:
+        """Explain a single instance. Used for parallel execution."""
+        exp = self.explainer.explain_instance(
+            data_row=x_row,
+            predict_fn=self.model.predict_proba,
+            num_features=n_features
+        )
+        
+        weights = np.zeros(n_features)
+        for feature_idx, weight in exp.as_map()[1]:
+            weights[feature_idx] = weight
+        
+        return weights, exp.intercept[1]
         
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         n_samples, n_features = X.shape
         weights = np.zeros((n_samples, n_features))
         intercepts = np.zeros(n_samples)
         
-        # LIME can only explain one instance at a time, so we must iterate
-        for i in range(n_samples):
-            # LIME requires the full predict_proba function (returning all classes)
-            exp = self.explainer.explain_instance(
-                data_row=X[i],
-                predict_fn=self.model.predict_proba,
-                num_features=n_features # Request weights for all features
+        # Use joblib for parallel processing if n_jobs > 1
+        if self.n_jobs > 1:
+            from joblib import Parallel, delayed
+            results = Parallel(n_jobs=self.n_jobs, backend="loky")(
+                delayed(self._explain_single)(i, X[i], n_features)
+                for i in range(n_samples)
             )
-            
-            # Extract weights for the positive class (assuming index 1)
-            for feature_idx, weight in exp.as_map()[1]:
-                weights[i, feature_idx] = weight
-            
-            # The intercept is stored inside LIME's internal surrogate linear model
-            intercepts[i] = exp.intercept[1]
+            for i, (w, intercept) in enumerate(results):
+                weights[i] = w
+                intercepts[i] = intercept
+        else:
+            # Sequential fallback
+            for i in range(n_samples):
+                weights[i], intercepts[i] = self._explain_single(i, X[i], n_features)
             
         return weights, intercepts
 
@@ -199,10 +218,12 @@ class MapleExplainer(BaseExplainer):
         min_samples_leaf: int = 10,
         regularization: float = 0.001,
         random_state: int = 42,
+        n_jobs: int = 1,
         **_: object,
     ):
         super().__init__(model)
         self.random_state = random_state
+        self.n_jobs = n_jobs
 
         X_train, X_val = self._split_background(
             background_data=background_data,
@@ -277,10 +298,28 @@ class MapleExplainer(BaseExplainer):
         weights = np.zeros((n_samples, n_features))
         intercepts = np.zeros(n_samples)
 
-        for i in range(n_samples):
-            exp = self.explainer.explain(X[i])
-            coefs = np.asarray(exp["coefs"], dtype=float)
-            intercepts[i] = coefs[0]
-            weights[i] = coefs[1:] * X[i]
+        # Use joblib for parallel processing if n_jobs > 1
+        if self.n_jobs > 1:
+            from joblib import Parallel, delayed
+            results = Parallel(n_jobs=self.n_jobs, backend="loky")(
+                delayed(self._explain_single)(i, X[i])
+                for i in range(n_samples)
+            )
+            for i, (w, intercept) in enumerate(results):
+                weights[i] = w
+                intercepts[i] = intercept
+        else:
+            # Sequential fallback
+            for i in range(n_samples):
+                exp = self.explainer.explain(X[i])
+                coefs = np.asarray(exp["coefs"], dtype=float)
+                intercepts[i] = coefs[0]
+                weights[i] = coefs[1:] * X[i]
 
         return weights, intercepts
+
+    def _explain_single(self, i: int, x_row: np.ndarray) -> tuple[np.ndarray, float]:
+        """Explain a single instance. Used for parallel execution."""
+        exp = self.explainer.explain(x_row)
+        coefs = np.asarray(exp["coefs"], dtype=float)
+        return coefs[1:] * x_row, float(coefs[0])

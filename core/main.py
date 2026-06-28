@@ -131,35 +131,6 @@ def _is_numeric_column(df: pd.DataFrame, column: str) -> bool:
     return pd.api.types.is_numeric_dtype(df[column])
 
 
-def _format_results_table(df: pd.DataFrame) -> str:
-    headers = list(df.columns)
-    formatted_rows = [
-        [_format_markdown_value(cell) for cell in row]
-        for row in df.values.tolist()
-    ]
-    widths = []
-
-    for idx, header in enumerate(headers):
-        row_width = max((len(row[idx]) for row in formatted_rows), default=0)
-        widths.append(max(len(header), row_width))
-
-    numeric_columns = [_is_numeric_column(df, header) for header in headers]
-    header_row = "  ".join(
-        _pad_markdown_cell(header, widths[idx], numeric_columns[idx])
-        for idx, header in enumerate(headers)
-    )
-    separator_row = "  ".join("-" * width for width in widths)
-    data_rows = [
-        "  ".join(
-            _pad_markdown_cell(cell, widths[idx], numeric_columns[idx])
-            for idx, cell in enumerate(row)
-        )
-        for row in formatted_rows
-    ]
-
-    return "\n".join([header_row, separator_row, *data_rows])
-
-
 def _pad_markdown_cell(value: str, width: int, align_right: bool) -> str:
     if align_right:
         return value.rjust(width)
@@ -259,12 +230,15 @@ def _render_markdown_report(
     for key, value in metadata.items():
         lines.append(f"- {key}: {value}")
 
-    lines.extend(["", "## Aggregate by Seed", "", _render_markdown_table(aggregate_df)])
+    # Only include aggregate section if we have multiple seeds
+    if aggregate_df is not None and not aggregate_df.empty:
+        lines.extend(["", "## Aggregate by Seed", "", _render_markdown_table(aggregate_df)])
     lines.extend(["", "## Results", "", table])
     return "\n".join(lines)
 
 
 def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
+    """Build run matrix: one run per dataset-seed combination (all parallelized together)."""
     seeds = (
         experiment.get("seeds")
         or experiment.get("random_states")
@@ -283,10 +257,10 @@ def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
         runs = []
         for dataset in datasets:
             for seed in seeds:
-                # Passiamo l'intera lista di k_values per dataset, invece che fare N cicli
                 runs.append({"dataset": dataset, "k_features": k_values, "seed": seed})
         return runs
 
+    # Single dataset mode
     return [
         {
             "dataset": experiment.get("dataset", "breast_cancer"),
@@ -335,23 +309,14 @@ def main() -> None:
         return orchestrator.run_experiment()
 
     # Parallelize at the seed level (each run is independent)
-    n_jobs = experiment.get("n_jobs", -1)
+    # Use all cores with joblib's built-in memory management for safe parallelism
+    n_jobs = -1  # -1 = all available cores, joblib handles resource management
     all_results = Parallel(n_jobs=n_jobs, backend="loky")(
         delayed(_run_single)(run) for run in runs
     )
 
     results = pd.concat(all_results, ignore_index=True)
     aggregate_results = _aggregate_seed_results(results)
-
-    if not aggregate_results.empty:
-        # print("\nAggregate by seed")
-        # print(_format_results_table(aggregate_results))
-        pass
-    # print("\n" + "=" * 60)
-    # print("  Complexity-Calibrated Local Concordance — Results")
-    # print("=" * 60)
-    # print(_format_results_table(results))
-    # print("=" * 60 + "\n")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_dir = Path("results")

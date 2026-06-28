@@ -179,6 +179,7 @@ class ExperimentOrchestrator:
 
         if explainer_key == "maple":
             params.setdefault("random_state", self.random_state)
+            params.setdefault("n_jobs", self.n_jobs or 1)
             return explainer_cls(
                 model,
                 background_data=self.X_train,
@@ -186,6 +187,7 @@ class ExperimentOrchestrator:
             )
 
         # Default wrapper (LIME-like)
+        params.setdefault("n_jobs", self.n_jobs or 1)
         return explainer_cls(
             model,
             background_data=self.X_train,

@@ -62,12 +62,14 @@ def load_results_table(path: str | Path) -> pd.DataFrame:
         raise FileNotFoundError(f"Results file not found: {results_path}")
 
     lines = results_path.read_text(encoding="utf-8").splitlines()
+    # Prefer the "## Results" section (primary data)
     for section_title in RESULT_SECTION_TITLES:
         df = _read_markdown_table(lines, section_title)
         if df is None:
             continue
         normalized = _normalize_results_columns(df)
-        if {"ccc_mse", "random_k_mse"}.issubset(normalized.columns):
+        # Check for required columns - use ccc_mse as minimum requirement
+        if "ccc_mse" in normalized.columns:
             if section_title != "## Results":
                 warnings.warn(
                     f"Using {section_title} from {results_path.name} because the primary results table is incomplete.",
@@ -178,11 +180,24 @@ def _plot_ccc_mse_by_k(df: pd.DataFrame, output_dir: Path) -> Path:
             subset = df[(df["dataset"] == dataset) & (df["model"] == model)]
             for explainer in sorted(subset["explainer"].unique()):
                 explainer_df = subset[subset["explainer"] == explainer].sort_values("k_features")
+                # Aggregate multiple seeds by mean for smooth continuous curves
+                if "seed" in explainer_df.columns and explainer_df["seed"].nunique() > 1:
+                    agg_dict = {"ccc_mse": "mean"}
+                    if "random_k_mse" in explainer_df.columns:
+                        agg_dict["random_k_mse"] = "mean"
+                    explainer_df = explainer_df.groupby("k_features", as_index=False).agg(agg_dict)
+                k_values = explainer_df["k_features"].values.astype(float)
+                ccc_values = explainer_df["ccc_mse"].values
+                
+                # Create smooth interpolated curve using numpy
+                k_smooth = np.linspace(k_values.min(), k_values.max(), 200)
+                # Linear interpolation for smooth curve
+                ccc_smooth = np.interp(k_smooth, k_values, ccc_values)
+                
                 ax.plot(
-                    explainer_df["k_features"],
-                    explainer_df["ccc_mse"],
-                    marker="o",
-                    linewidth=2.2,
+                    k_smooth,
+                    ccc_smooth,
+                    linewidth=2.5,
                     color=EXPLAINER_COLORS.get(explainer, "#4b5563"),
                     label=explainer.upper(),
                 )
@@ -212,6 +227,15 @@ def _plot_ccc_mse_by_k(df: pd.DataFrame, output_dir: Path) -> Path:
 
 
 def _plot_explainer_ranking(df: pd.DataFrame, output_dir: Path) -> Path:
+    # Aggregate by seed first if multiple seeds exist, then compute mean per dataset/explainer
+    agg_columns = ["ccc_mse"]
+    if "seed" in df.columns and df["seed"].nunique() > 1:
+        # Group by dataset, model, explainer, k_features to get mean across seeds
+        group_cols = ["dataset", "explainer", "k_features"]
+        if "model" in df.columns:
+            group_cols.insert(1, "model")
+        df = df.groupby(group_cols, as_index=False)[agg_columns].mean()
+    
     ranking = (
         df.groupby(["dataset", "explainer"], as_index=False)["ccc_mse"]
         .mean()
@@ -247,6 +271,16 @@ def _plot_explainer_ranking(df: pd.DataFrame, output_dir: Path) -> Path:
 
 
 def _plot_random_k_advantage(df: pd.DataFrame, output_dir: Path) -> Path:
+    # Aggregate by seed first if multiple seeds exist
+    if "seed" in df.columns and df["seed"].nunique() > 1:
+        group_cols = ["dataset", "explainer", "k_features"]
+        if "model" in df.columns:
+            group_cols.insert(1, "model")
+        agg_dict = {"ccc_mse": "mean"}
+        if "random_k_mse" in df.columns:
+            agg_dict["random_k_mse"] = "mean"
+        df = df.groupby(group_cols, as_index=False).agg(agg_dict)
+    
     max_k = int(df["k_features"].max())
     subset = df[df["k_features"] == max_k].copy()
     subset["error_reduction"] = 100 * (1 - subset["ccc_mse"] / subset["random_k_mse"])
