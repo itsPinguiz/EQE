@@ -37,6 +37,9 @@ METRIC_ALIASES = {
         "comprehensiveness_abs_drop",
         "comprehensiveness_abs_drop_mean",
     ),
+    "ccc_mse_normalized": ("ccc_mse_normalized", "ccc_mse_normalized_mean"),
+    "top_k_degradation_ratio": ("top_k_degradation_ratio", "top_k_degradation_ratio_mean"),
+    "full_mse": ("full_mse", "full_mse_mean"),
 }
 
 
@@ -126,14 +129,19 @@ def _split_markdown_row(line: str) -> list[str]:
 def _coerce_results_types(df: pd.DataFrame) -> pd.DataFrame:
     typed = df.copy()
     integer_columns = ["k_features", "n_explain"]
-    float_columns = ["accuracy", "ccc_mse", "random_k_mse", "sufficiency_mse", "comprehensiveness_abs_drop"]
+    # Metrics that may contain NaN values (e.g., top_k_degradation_ratio for SHAP)
+    # Use errors="coerce" to handle NaN gracefully
+    float_columns = [
+        "accuracy", "ccc_mse", "random_k_mse", "sufficiency_mse",
+        "comprehensiveness_abs_drop", "ccc_mse_normalized", "top_k_degradation_ratio", "full_mse"
+    ]
 
     for column in integer_columns:
         if column in typed.columns:
             typed[column] = pd.to_numeric(typed[column], errors="raise").astype(int)
     for column in float_columns:
         if column in typed.columns:
-            typed[column] = pd.to_numeric(typed[column], errors="raise")
+            typed[column] = pd.to_numeric(typed[column], errors="coerce")
 
     return typed
 
@@ -146,6 +154,7 @@ def generate_summary_charts(df: pd.DataFrame, output_dir: str | Path) -> list[Pa
         (_plot_ccc_mse_by_k, {"dataset", "model", "explainer", "k_features", "ccc_mse"}),
         (_plot_explainer_ranking, {"dataset", "explainer", "ccc_mse"}),
         (_plot_random_k_advantage, {"dataset", "explainer", "k_features", "ccc_mse", "random_k_mse"}),
+        (_plot_ccc_vs_full, {"dataset", "model", "explainer", "k_features", "ccc_mse", "full_mse"}),
     ]
     paths: list[Path] = []
     for plot_func, required_columns in plot_specs:
@@ -313,6 +322,80 @@ def _plot_random_k_advantage(df: pd.DataFrame, output_dir: Path) -> Path:
 
     fig.suptitle(f"Top-K beats random feature selection at K={max_k}", fontweight="bold")
     path = output_dir / f"top_k_vs_random_k_k{max_k}.png"
+    fig.savefig(path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
+def _plot_ccc_vs_full(df: pd.DataFrame, output_dir: Path) -> Path:
+    """Scatter plot showing degradation from top-K truncation.
+
+    X-axis: full_mse (baseline fidelity). Y-axis: ccc_mse (truncated fidelity).
+    Points near the diagonal indicate robust explanations.
+    Note: SHAP points collapse to x≈0 due to local accuracy guarantee.
+    """
+    # Aggregate by seed first if necessary
+    if "seed" in df.columns and df["seed"].nunique() > 1:
+        group_cols = ["dataset", "model", "explainer", "k_features"]
+        agg_dict = {"ccc_mse": "mean"}
+        if "full_mse" in df.columns:
+            agg_dict["full_mse"] = "mean"
+        if "top_k_degradation_ratio" in df.columns:
+            agg_dict["top_k_degradation_ratio"] = "mean"
+        df = df.groupby(group_cols, as_index=False).agg(agg_dict)
+
+    # Filter for max K to show worst-case degradation
+    max_k = int(df["k_features"].max())
+    subset = df[df["k_features"] == max_k].copy()
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    # Plot each explainer with distinct colors
+    for explainer in sorted(subset["explainer"].unique()):
+        expl_df = subset[subset["explainer"] == explainer]
+        color = EXPLAINER_COLORS.get(explainer, "#4b5563")
+
+        # Skip points where full_mse is 0 (SHAP) to avoid log issues
+        nonzero_mask = expl_df["full_mse"] > 1e-10
+
+        ax.scatter(
+            expl_df.loc[nonzero_mask, "full_mse"],
+            expl_df.loc[nonzero_mask, "ccc_mse"],
+            c=color,
+            label=explainer.upper(),
+            s=80,
+            alpha=0.8,
+            edgecolor="#2b2f36",
+        )
+
+        # Mark SHAP separately (all points at x≈0)
+        if explainer == "shap" or not nonzero_mask.any():
+            shap_df = expl_df[~nonzero_mask]
+            if len(shap_df) > 0:
+                ax.scatter(
+                    shap_df["ccc_mse"] * 0 + 1e-12,  # Offset for visibility
+                    shap_df["ccc_mse"],
+                    c=color,
+                    label=f"{explainer.upper()} (exact)",
+                    s=80,
+                    alpha=0.8,
+                    marker="s",
+                    edgecolor="#2b2f36",
+                )
+
+    # Reference line: perfect robustness (y = x)
+    max_val = max(subset["ccc_mse"].max(), subset["full_mse"].max())
+    ax.plot([0, max_val], [0, max_val], "k--", alpha=0.5, label="Perfect robustness")
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("Full MSE (log scale)")
+    ax.set_ylabel("CCC MSE at K=max (log scale)")
+    ax.set_title("Fidelity degradation from top-K truncation\n(SHAP points at x≈0 by design)")
+    ax.grid(True, which="both", linestyle="--", alpha=0.25)
+    ax.legend(loc="best", frameon=False)
+
+    path = output_dir / "ccc_vs_full_scatter.png"
     fig.savefig(path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     return path

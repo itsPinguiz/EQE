@@ -437,12 +437,89 @@ class ComprehensivenessAbsDrop(EvaluationMetric):
         return True
 
 
+class NormalizedCCC(EvaluationMetric):
+    """Normalized CCC (NMSE variant): ccc_mse normalized by prediction variance.
+
+    Equivalent to 1 - R² when the baseline predictor is the mean of predictions.
+    A value of 0.25 means the truncated explanation error equals 25% of the
+    variance in black-box predictions. This enables cross-dataset comparison.
+    """
+
+    def __init__(self, k_features: int = 4) -> None:
+        if k_features < 1:
+            raise ValueError(f"k_features must be >= 1, got {k_features}.")
+        self.k_features = k_features
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+        **_: Any,
+    ) -> float:
+        ccc = ComplexityCalibratedConcordance(k_features=self.k_features).compute(
+            f_proba, weights, intercepts, X
+        )
+        variance = np.var(f_proba)
+        return float(ccc / variance) if variance > 0 else float("inf")
+
+    def __repr__(self) -> str:
+        return f"NormalizedCCC(k_features={self.k_features})"
+
+    @property
+    def name(self) -> str:
+        return "ccc_mse_normalized"
+
+
+class TopKDegradationRatio(EvaluationMetric):
+    """Ratio of top-K error to full error: ccc_mse / full_mse.
+
+    Values close to 1 indicate low degradation from truncation. Higher values
+    indicate significant fidelity loss. Returns NaN for exact methods (SHAP)
+    where full_mse ≈ 0 due to local accuracy guarantee.
+    """
+
+    def __init__(self, k_features: int = 4) -> None:
+        if k_features < 1:
+            raise ValueError(f"k_features must be >= 1, got {k_features}.")
+        self.k_features = k_features
+
+    def compute(
+        self,
+        f_proba: npt.NDArray[np.float64],
+        weights: npt.NDArray[np.float64],
+        intercepts: npt.NDArray[np.float64],
+        X: npt.NDArray[np.float64],
+        **_: Any,
+    ) -> float:
+        ccc = ComplexityCalibratedConcordance(k_features=self.k_features).compute(
+            f_proba, weights, intercepts, X
+        )
+        full = FullLocalFidelityMSE().compute(
+            f_proba, weights, intercepts, X
+        )
+        # Return NaN for exact methods (SHAP) where ratio would be undefined/infinite
+        if full < 1e-10:
+            return float("nan")
+        return float(ccc / full)
+
+    def __repr__(self) -> str:
+        return f"TopKDegradationRatio(k_features={self.k_features})"
+
+    @property
+    def name(self) -> str:
+        return "top_k_degradation_ratio"
+
+
 METRIC_REGISTRY = {
     "ccc_mse": ComplexityCalibratedConcordance,
     "random_k_mse": RandomKConcordance,
     "full_mse": FullLocalFidelityMSE,
     "sufficiency_mse": SufficiencyMSE,
     "comprehensiveness_abs_drop": ComprehensivenessAbsDrop,
+    "ccc_mse_normalized": NormalizedCCC,
+    "top_k_degradation_ratio": TopKDegradationRatio,
 }
 
 

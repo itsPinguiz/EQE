@@ -7,7 +7,7 @@ experiment:
   test_size: 0.2
   random_state: 42
   seeds: [42, 123, 2026]
-  n_explain: null
+  n_explain: 1000
   n_jobs: null
   verbose: true
 
@@ -44,6 +44,8 @@ metrics:
   - name: random_k_mse
     params:
       repeats: 30
+  - ccc_mse_normalized
+  - top_k_degradation_ratio
 
 results:
   filename_prefix: results

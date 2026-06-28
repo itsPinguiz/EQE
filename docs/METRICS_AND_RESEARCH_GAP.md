@@ -118,8 +118,9 @@ The benchmark now supports the following comparison metrics:
 | Metric | Meaning | Better |
 | --- | --- | --- |
 | `ccc_mse` | Error between `f(x)` and top-`K` additive reconstruction `g_K(x)` | Lower |
+| `ccc_mse_normalized` | ccc_mse normalized by prediction variance (NMSE, equivalent to 1-R²) | Lower |
 | `full_mse` | Error between `f(x)` and full additive reconstruction `g(x)` | Lower |
-| `top_k_degradation_mse` | Extra error introduced by truncating `g(x)` to `g_K(x)` | Lower |
+| `top_k_degradation_ratio` | Ratio ccc_mse/full_mse (NaN for exact methods like SHAP) | Lower |
 | `compactness_ratio` | Fraction of available features retained by top-`K` | Lower |
 | `sufficiency_mse` | Prediction drift when only top-`K` input features are kept | Lower |
 | `comprehensiveness_abs_drop` | Prediction change when top-`K` input features are removed | Higher |
