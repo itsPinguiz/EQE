@@ -155,6 +155,7 @@ def generate_summary_charts(df: pd.DataFrame, output_dir: str | Path) -> list[Pa
         (_plot_explainer_ranking, {"dataset", "explainer", "ccc_mse"}),
         (_plot_random_k_advantage, {"dataset", "explainer", "k_features", "ccc_mse", "random_k_mse"}),
         (_plot_ccc_vs_full, {"dataset", "model", "explainer", "k_features", "ccc_mse", "full_mse"}),
+        (_plot_seed_variability, {"dataset", "model", "explainer", "seed", "k_features", "ccc_mse"}),
     ]
     paths: list[Path] = []
     for plot_func, required_columns in plot_specs:
@@ -396,6 +397,80 @@ def _plot_ccc_vs_full(df: pd.DataFrame, output_dir: Path) -> Path:
     ax.legend(loc="best", frameon=False)
 
     path = output_dir / "ccc_vs_full_scatter.png"
+    fig.savefig(path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
+def _plot_seed_variability(df: pd.DataFrame, output_dir: Path) -> Path:
+    """Dot plot showing CCC MSE variability across seeds.
+
+    More informative than box plots when seed count is small (<5).
+    Shows that mean aggregation is justified if dots are clustered.
+    """
+    if "seed" not in df.columns or df["seed"].nunique() <= 1:
+        # No seed variability - return early
+        return output_dir / "seed_variability_dotplot.png"
+
+    # Aggregate by seed first, then compute mean across seeds
+    group_cols = ["dataset", "model", "explainer", "seed", "k_features"]
+    if "ccc_mse" in df.columns:
+        df_mean = df.groupby(group_cols, as_index=False)["ccc_mse"].mean()
+
+    # Get max K for worst-case analysis
+    max_k = int(df_mean["k_features"].max())
+    subset = df_mean[df_mean["k_features"] == max_k].copy()
+
+    datasets = sorted(subset["dataset"].unique())
+    fig, axes = plt.subplots(1, len(datasets), figsize=(12, 5), constrained_layout=True)
+    if len(datasets) == 1:
+        axes = np.array([axes])
+
+    for ax, dataset in zip(axes, datasets, strict=True):
+        dataset_df = subset[subset["dataset"] == dataset]
+        colors = [EXPLAINER_COLORS.get(name, "#4b5563") for name in dataset_df["explainer"]]
+
+        for idx, (explainer, group) in enumerate(dataset_df.groupby("explainer")):
+            seeds = group["seed"].values
+            ccc_values = group["ccc_mse"].values
+            color = EXPLAINER_COLORS.get(explainer, "#4b5563")
+
+            # Dot/strip plot
+            y_positions = np.arange(len(seeds)) + idx * 0.15
+            ax.scatter(
+                ccc_values, y_positions,
+                c=color, label=explainer.upper() if idx == 0 else None,
+                s=60, alpha=0.8, edgecolor="#2b2f36",
+            )
+
+            # Connect dots to show trend
+            ax.plot(
+                ccc_values, y_positions,
+                c=color, alpha=0.3, linewidth=1,
+            )
+
+        ax.set_xlabel("CCC MSE")
+        ax.set_yticks([])
+        ax.set_title(dataset)
+        ax.grid(axis="x", linestyle="--", alpha=0.25)
+
+    # Global mean marker
+    global_mean = subset.groupby("explainer")["ccc_mse"].mean()
+    for explainer, mean_val in global_mean.items():
+        color = EXPLAINER_COLORS.get(explainer, "#4b5563")
+        for ax, dataset in zip(axes, datasets, strict=True):
+            dataset_mean = subset[subset["dataset"] == dataset].groupby("explainer")["ccc_mse"].mean()
+            if explainer in dataset_mean.index:
+                ax.axvline(dataset_mean[explainer], color=color, alpha=0.5, linestyle=":")
+
+    # Single legend
+    handles = [plt.scatter([], [], c=EXPLAINER_COLORS.get(e, "#4b5563"), label=e.upper())
+               for e in sorted(subset["explainer"].unique())]
+    fig.legend(handles=handles, loc="lower center", ncol=len(handles), frameon=False,
+               bbox_to_anchor=(0.5, -0.02))
+
+    fig.suptitle("Seed variability (strip plot) - Dots near cluster center indicate stable results", fontweight="bold")
+    path = output_dir / "seed_variability_dotplot.png"
     fig.savefig(path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     return path
