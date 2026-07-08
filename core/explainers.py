@@ -21,6 +21,7 @@ except ImportError:
 
 from core.model import BlackBoxModel
 from core.third_party.MAPLE import MAPLE
+from core.utility.progress import progress_bar, tqdm_joblib
 
 class BaseExplainer(ABC):
     """
@@ -151,7 +152,15 @@ class LimeTabularExplainerWrapper(BaseExplainer):
     so the wrapper converts each coefficient beta_i into beta_i * z_i(x).
     """
     
-    def __init__(self, model: BlackBoxModel, background_data: npt.NDArray[np.float64], feature_names: list[str] = None, n_jobs: int = 1):
+    def __init__(
+        self,
+        model: BlackBoxModel,
+        background_data: npt.NDArray[np.float64],
+        feature_names: list[str] = None,
+        n_jobs: int = 1,
+        show_progress: bool = True,
+        progress_queue=None,
+    ):
         super().__init__(model)
         if lime is None:
             raise ImportError("Please install 'lime' library to use LimeTabularExplainerWrapper.")
@@ -166,6 +175,8 @@ class LimeTabularExplainerWrapper(BaseExplainer):
             mode='classification'
         )
         self.n_jobs = n_jobs
+        self.show_progress = show_progress
+        self.progress_queue = progress_queue
         
     def _explain_single(self, i: int, x_row: np.ndarray, n_features: int) -> tuple[np.ndarray, float]:
         """Explain a single instance. Used for parallel execution."""
@@ -179,8 +190,13 @@ class LimeTabularExplainerWrapper(BaseExplainer):
         weights = np.zeros(n_features)
         for feature_idx, coefficient in exp.as_map()[1]:
             weights[feature_idx] = coefficient * interpretable_row[feature_idx]
+        self._emit_sample_progress("LIME")
         
         return weights, exp.intercept[1]
+
+    def _emit_sample_progress(self, label: str) -> None:
+        if self.progress_queue is not None:
+            self.progress_queue.put({"type": "sample", "amount": 1, "label": label})
 
     @staticmethod
     def _interpretable_row(exp, n_features: int) -> np.ndarray:
@@ -214,16 +230,29 @@ class LimeTabularExplainerWrapper(BaseExplainer):
         # Use joblib for parallel processing if n_jobs > 1
         if self.n_jobs > 1:
             from joblib import Parallel, delayed
-            results = Parallel(n_jobs=self.n_jobs, backend="loky")(
-                delayed(self._explain_single)(i, X[i], n_features)
-                for i in range(n_samples)
+            progress = progress_bar(
+                total=n_samples,
+                desc="LIME samples",
+                disable=(not self.show_progress) or self.progress_queue is not None,
+                unit="sample",
             )
+            with tqdm_joblib(progress):
+                results = Parallel(n_jobs=self.n_jobs, backend="loky")(
+                    delayed(self._explain_single)(i, X[i], n_features)
+                    for i in range(n_samples)
+                )
             for i, (w, intercept) in enumerate(results):
                 weights[i] = w
                 intercepts[i] = intercept
         else:
             # Sequential fallback
-            for i in range(n_samples):
+            iterator = progress_bar(
+                range(n_samples),
+                desc="LIME samples",
+                disable=(not self.show_progress) or self.progress_queue is not None,
+                unit="sample",
+            )
+            for i in iterator:
                 weights[i], intercepts[i] = self._explain_single(i, X[i], n_features)
             
         return weights, intercepts
@@ -250,11 +279,15 @@ class MapleExplainer(BaseExplainer):
         regularization: float = 0.001,
         random_state: int = 42,
         n_jobs: int = 1,
+        show_progress: bool = True,
+        progress_queue=None,
         **_: object,
     ):
         super().__init__(model)
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.show_progress = show_progress
+        self.progress_queue = progress_queue
 
         X_train, X_val = self._split_background(
             background_data=background_data,
@@ -332,20 +365,34 @@ class MapleExplainer(BaseExplainer):
         # Use joblib for parallel processing if n_jobs > 1
         if self.n_jobs > 1:
             from joblib import Parallel, delayed
-            results = Parallel(n_jobs=self.n_jobs, backend="loky")(
-                delayed(self._explain_single)(i, X[i])
-                for i in range(n_samples)
+            progress = progress_bar(
+                total=n_samples,
+                desc="MAPLE samples",
+                disable=(not self.show_progress) or self.progress_queue is not None,
+                unit="sample",
             )
+            with tqdm_joblib(progress):
+                results = Parallel(n_jobs=self.n_jobs, backend="loky")(
+                    delayed(self._explain_single)(i, X[i])
+                    for i in range(n_samples)
+                )
             for i, (w, intercept) in enumerate(results):
                 weights[i] = w
                 intercepts[i] = intercept
         else:
             # Sequential fallback
-            for i in range(n_samples):
+            iterator = progress_bar(
+                range(n_samples),
+                desc="MAPLE samples",
+                disable=(not self.show_progress) or self.progress_queue is not None,
+                unit="sample",
+            )
+            for i in iterator:
                 exp = self.explainer.explain(X[i])
                 coefs = np.asarray(exp["coefs"], dtype=float)
                 intercepts[i] = coefs[0]
                 weights[i] = coefs[1:] * X[i]
+                self._emit_sample_progress("MAPLE")
 
         return weights, intercepts
 
@@ -353,4 +400,9 @@ class MapleExplainer(BaseExplainer):
         """Explain a single instance. Used for parallel execution."""
         exp = self.explainer.explain(x_row)
         coefs = np.asarray(exp["coefs"], dtype=float)
+        self._emit_sample_progress("MAPLE")
         return coefs[1:] * x_row, float(coefs[0])
+
+    def _emit_sample_progress(self, label: str) -> None:
+        if self.progress_queue is not None:
+            self.progress_queue.put({"type": "sample", "amount": 1, "label": label})

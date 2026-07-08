@@ -13,6 +13,7 @@ from core.explainers import LimeTabularExplainerWrapper, MapleExplainer, ShapExp
 from core.metrics import build_metrics
 from core.model import BlackBoxModel, NeuralNetworkModel, XGBoostModel
 from core.utility.log import ExperimentLogger
+from core.utility.progress import progress_bar, tqdm_joblib
 
 run_logger = ExperimentLogger.get_logger("Run")
 data_logger = ExperimentLogger.get_logger("Data")
@@ -34,6 +35,18 @@ EXPLAINER_REGISTRY = {
 HIGHER_IS_BETTER_METRICS = {"comprehensiveness_abs_drop"}
 
 
+def _apply_log_level(verbose: bool) -> None:
+    level = logging.INFO if verbose else logging.WARNING
+    for stage_logger in (
+        run_logger,
+        data_logger,
+        model_logger,
+        explain_logger,
+        metric_logger,
+    ):
+        stage_logger.setLevel(level)
+
+
 class ExperimentOrchestrator:
     def __init__(
         self,
@@ -51,6 +64,8 @@ class ExperimentOrchestrator:
         shap_background_strategy: str | None = None,
         n_jobs: int | None = None,
         verbose: bool = True,
+        show_progress: bool | None = None,
+        progress_queue=None,
     ):
         self.dataset_name = dataset_name
         # Accept a single K or a list of K values
@@ -68,6 +83,8 @@ class ExperimentOrchestrator:
         self.shap_background_strategy = shap_background_strategy
         self.n_jobs = n_jobs
         self.verbose = verbose
+        self.show_progress = (not verbose) if show_progress is None else show_progress
+        self.progress_queue = progress_queue
 
         self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None
         self.feature_names = []
@@ -75,15 +92,14 @@ class ExperimentOrchestrator:
         self.model_scores = {}
         self.feature_baseline = None
 
-        if not self.verbose:
-            for stage_logger in (
-                run_logger,
-                data_logger,
-                model_logger,
-                explain_logger,
-                metric_logger,
-            ):
-                stage_logger.setLevel(logging.WARNING)
+        _apply_log_level(self.verbose)
+
+    def _emit_progress(self, event_type: str, amount: int = 1, label: str | None = None) -> None:
+        if self.progress_queue is not None:
+            event = {"type": event_type, "amount": amount}
+            if label:
+                event["label"] = label
+            self.progress_queue.put(event)
         
     def _load_dataset(self) -> None:
         """Delega il caricamento dei dati all'apposito DataLoader."""
@@ -109,6 +125,7 @@ class ExperimentOrchestrator:
             f"test={self.X_test.shape[0]} | "
             f"features={len(self.feature_names)}"
         )
+        self._emit_progress("stage", label=f"{self.dataset_name}/{self.random_state} data")
 
     def _train_models(self) -> None:
         """Initializes and trains the Black-Box models."""
@@ -124,12 +141,23 @@ class ExperimentOrchestrator:
             model = model_cls(**params)
             self.models[model_key] = model
 
-        for name, model in self.models.items():
+        model_items = progress_bar(
+            self.models.items(),
+            total=len(self.models),
+            desc=f"{self.dataset_name}/{self.random_state} models",
+            disable=not self.show_progress,
+            unit="model",
+        )
+        for name, model in model_items:
             model.train(self.X_train, self.y_train)
             preds = model.predict(self.X_test)
             acc = accuracy_score(self.y_test, preds)
             self.model_scores[name] = float(acc)
             model_logger.info(f"Trained | model={name} | accuracy={acc:.4f}")
+            self._emit_progress(
+                "stage",
+                label=f"{self.dataset_name}/{self.random_state} {name}",
+            )
 
     def _generate_explanations(self) -> pd.DataFrame:
         """Deprecated: kept for compatibility.
@@ -180,6 +208,8 @@ class ExperimentOrchestrator:
         if explainer_key == "maple":
             params.setdefault("random_state", self.random_state)
             params.setdefault("n_jobs", self.n_jobs or 1)
+            params.setdefault("show_progress", self.show_progress and self.n_jobs == 1)
+            params.setdefault("progress_queue", self.progress_queue)
             return explainer_cls(
                 model,
                 background_data=self.X_train,
@@ -188,6 +218,8 @@ class ExperimentOrchestrator:
 
         # Default wrapper (LIME-like)
         params.setdefault("n_jobs", self.n_jobs or 1)
+        params.setdefault("show_progress", self.show_progress and self.n_jobs == 1)
+        params.setdefault("progress_queue", self.progress_queue)
         return explainer_cls(
             model,
             background_data=self.X_train,
@@ -207,7 +239,12 @@ class ExperimentOrchestrator:
         Returns a tuple (model_name, explainer_name, payload) where payload is None on error.
         This function is designed to be called in parallel via joblib.
         """
+        _apply_log_level(self.verbose)
         try:
+            self._emit_progress(
+                "active",
+                label=f"{self.dataset_name}/{self.random_state} {model_name}/{explainer_name}",
+            )
             started_at = time.perf_counter()
             explain_logger.info(
                 "Started | "
@@ -223,6 +260,16 @@ class ExperimentOrchestrator:
                 f"explainer={explainer_name} | "
                 f"shape={weights.shape[0]}x{weights.shape[1]} | "
                 f"time={elapsed:.1f}s"
+            )
+            if explainer_name.lower() == "shap":
+                self._emit_progress(
+                    "sample",
+                    amount=X_explain.shape[0],
+                    label="SHAP",
+                )
+            self._emit_progress(
+                "stage",
+                label=f"{self.dataset_name}/{self.random_state} {model_name}/{explainer_name}",
             )
             return model_name, explainer_name, {
                 "weights": weights,
@@ -269,13 +316,21 @@ class ExperimentOrchestrator:
             for model_name, model in self.models.items()
             for explainer_name in self.explainers
         ]
+        self._emit_progress("sample_total", amount=len(tasks) * X_explain.shape[0])
 
         # Parallelize at the outer level (model, explainer pairs)
         n_jobs = self.n_jobs or -1  # -1 = all cores
-        results = Parallel(n_jobs=n_jobs, backend="loky")(
-            delayed(self._explain_single_pair)(model_name, model, explainer_name, X_explain)
-            for model_name, model, explainer_name, X_explain in tasks
+        progress = progress_bar(
+            total=len(tasks),
+            desc=f"{self.dataset_name}/{self.random_state} explainers",
+            disable=not self.show_progress,
+            unit="pair",
         )
+        with tqdm_joblib(progress):
+            results = Parallel(n_jobs=n_jobs, backend="loky")(
+                delayed(self._explain_single_pair)(model_name, model, explainer_name, X_explain)
+                for model_name, model, explainer_name, X_explain in tasks
+            )
 
         explanations: dict = {}
         for model_name, explainer_name, payload in results:
@@ -409,10 +464,20 @@ class ExperimentOrchestrator:
         
         # 2. K-Loop Optimization (Instant Compute iterating over cache)
         all_results = []
-        for current_k in self.k_features_list:
+        k_iter = progress_bar(
+            self.k_features_list,
+            desc=f"{self.dataset_name}/{self.random_state} metrics",
+            disable=not self.show_progress,
+            unit="K",
+        )
+        for current_k in k_iter:
             k_result_df = self.compute_metrics(explanations_cache, X_explain, current_k)
             self._log_metric_summary(k_result_df, current_k)
             all_results.append(k_result_df)
+            self._emit_progress(
+                "stage",
+                label=f"{self.dataset_name}/{self.random_state} K={current_k}",
+            )
             
         final_results = pd.concat(all_results, ignore_index=True) if all_results else pd.DataFrame()
         run_logger.info(f"Experiment concluded | rows={final_results.shape[0]}")

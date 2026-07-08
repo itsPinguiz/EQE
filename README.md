@@ -197,6 +197,11 @@ The benchmark writes:
 - summary charts under `results/figures/latest/`;
 - logs under `results/experiment.log`.
 
+Set `experiment.verbose: false` for clean progress-only output. In that mode,
+the main process owns the progress display: one bar tracks pipeline stages
+and one bar tracks explanation samples. Set `experiment.verbose: true` when
+you want detailed logs instead.
+
 ## Configuring Experiments
 
 The most important knobs are in `config.yml`:

@@ -7,9 +7,9 @@ experiment:
   test_size: 0.2
   random_state: 42
   seeds: [42, 123, 2026]
-  n_explain: 1000
+  n_explain: null
   n_jobs: null
-  verbose: true
+  verbose: false
 
 models:
   - name: xgboost

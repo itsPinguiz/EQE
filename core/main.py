@@ -12,6 +12,8 @@ or:
 from __future__ import annotations
 
 import argparse
+import multiprocessing
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -24,8 +26,10 @@ from joblib import Parallel, delayed
 # Permette di eseguire anche: `python core/main.py`
 sys.path.append(str(Path(__file__).parent.parent))
 
+from core.data_loader import AdultIncomeLoader, BreastCancerLoader
 from core.test_framework import ExperimentOrchestrator
 from core.utility.config import DEFAULT_CONFIG_PATH, load_config
+from core.utility.progress import ProgressMonitor
 
 
 def parse_args() -> argparse.Namespace:
@@ -271,6 +275,61 @@ def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def _count_pipeline_stages(
+    runs: list[dict[str, Any]],
+    models: list[str] | None,
+    explainers: list[str] | None,
+) -> int:
+    model_count = len(models or ["xgboost", "neuralnetwork"])
+    explainer_count = len(explainers or ["lime", "shap"])
+    total = 0
+    for run in runs:
+        k_count = len(run["k_features"]) if isinstance(run["k_features"], list) else 1
+        total += 1  # dataset loading
+        total += model_count
+        total += model_count * explainer_count
+        total += k_count
+    return total
+
+
+def _count_explanation_samples(
+    runs: list[dict[str, Any]],
+    models: list[str] | None,
+    explainers: list[str] | None,
+    experiment: dict[str, Any],
+) -> int:
+    model_count = len(models or ["xgboost", "neuralnetwork"])
+    explainer_count = len(explainers or ["lime", "shap"])
+    n_explain = experiment.get("n_explain")
+    test_size = experiment.get("test_size", 0.2)
+    test_counts: dict[tuple[str, int], int] = {}
+    total = 0
+
+    for run in runs:
+        dataset = run["dataset"]
+        seed = run["seed"]
+        key = (dataset, seed)
+
+        if key not in test_counts:
+            if dataset == "breast_cancer":
+                loader = BreastCancerLoader(test_size=test_size, random_state=seed)
+            elif dataset == "adult":
+                loader = AdultIncomeLoader(test_size=test_size, random_state=seed)
+            else:
+                raise ValueError(f"Dataset non supportato: {dataset}")
+
+            _, X_test, _, _ = loader.load_data()
+            test_counts[key] = X_test.shape[0]
+
+        sample_count = test_counts[key]
+        if n_explain is not None:
+            sample_count = min(sample_count, n_explain)
+
+        total += model_count * explainer_count * sample_count
+
+    return total
+
+
 def main() -> None:
     """Instantiate the pipeline and run the experiment.
 
@@ -290,6 +349,14 @@ def main() -> None:
 
     runs = _build_run_matrix(experiment)
 
+    n_jobs = experiment.get("n_jobs") or -1  # -1 = all available cores
+    verbose = experiment.get("verbose", True)
+    show_progress = not verbose
+    show_inner_progress = False
+    os.environ["EQE_VERBOSE"] = "1" if verbose else "0"
+    manager = multiprocessing.Manager() if show_progress else None
+    progress_queue = manager.Queue() if manager is not None else None
+
     def _run_single(run: dict) -> pd.DataFrame:
         """Execute a single experiment run (dataset + seed combination)."""
         orchestrator = ExperimentOrchestrator(
@@ -304,16 +371,37 @@ def main() -> None:
             explainer_params=explainer_params,
             metrics=config.get("metrics"),
             n_jobs=experiment.get("n_jobs"),
-            verbose=experiment.get("verbose", True),
+            verbose=verbose,
+            show_progress=show_inner_progress,
+            progress_queue=progress_queue,
         )
         return orchestrator.run_experiment()
 
     # Parallelize at the seed level (each run is independent)
     # Use all cores with joblib's built-in memory management for safe parallelism
-    n_jobs = -1  # -1 = all available cores, joblib handles resource management
-    all_results = Parallel(n_jobs=n_jobs, backend="loky")(
-        delayed(_run_single)(run) for run in runs
+    total_stages = _count_pipeline_stages(runs, models, explainers)
+    total_explanation_samples = (
+        _count_explanation_samples(runs, models, explainers, experiment)
+        if show_progress
+        else 0
     )
+    with ProgressMonitor(
+        progress_queue,
+        total_stages=total_stages,
+        total_samples=total_explanation_samples,
+        enabled=show_progress,
+    ):
+        if n_jobs == 1:
+            all_results = []
+            for run in runs:
+                all_results.append(_run_single(run))
+        else:
+            all_results = Parallel(n_jobs=n_jobs, backend="loky")(
+                delayed(_run_single)(run) for run in runs
+            )
+
+    if manager is not None:
+        manager.shutdown()
 
     results = pd.concat(all_results, ignore_index=True)
     aggregate_results = _aggregate_seed_results(results)

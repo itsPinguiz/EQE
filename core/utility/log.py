@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -60,7 +61,8 @@ class ExperimentLogger:
             logging.Logger: L'istanza del logger pronta all'uso.
         """
         logger = logging.getLogger(name)
-        logger.setLevel(level)
+        effective_level = logging.WARNING if os.environ.get("EQE_VERBOSE") == "0" else level
+        logger.setLevel(effective_level)
         
         # Evita la duplicazione degli handler se il logger viene richiamato più volte
         if logger.hasHandlers():
