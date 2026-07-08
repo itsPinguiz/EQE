@@ -162,9 +162,16 @@ class BaseExplainer(ABC):
         pass
 
 # SHAP: KernelExplainer con background stratificato
-# LIME: LimeTabularExplainer con regressione lineare locale
+# LIME: LimeTabularExplainer con regressione lineare locale su rappresentazione z(x)
 # MAPLE: Multiple Additive Regression Trees con split train/val
 ```
+
+L'interfaccia non considera validi coefficienti grezzi del surrogate: `weights`
+indica sempre contributi additivi nella forma $\phi_i(x)$. Per questo SHAP
+viene usato direttamente, MAPLE viene convertito come
+$\phi_i(x)=\beta_i x_i$, e LIME viene convertito come
+$\phi_i(x)=\beta_i z_i(x)$, dove $z_i(x)$ è la rappresentazione
+interpretabile/scalata usata dal surrogate locale di LIME.
 
 ---
 
@@ -202,7 +209,8 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         """
         NOTA IMPLEMENTATIVA CRUCIALE:
         - SHAP values sono già contributi additivi completi
-        - LIME coefficients vengono convertiti a contributi (coefficients * feature_value)
+        - MAPLE coefficients vengono convertiti a contributi (coefficients * feature_value)
+        - LIME coefficients vengono convertiti a contributi (coefficients * z_i(x))
         - I contributi NON vengono moltiplicati nuovamente per X
         - Questo perché rappresentano già phi_i(x) nella formula g(x) = w_0 + sum(phi_i)
         """
@@ -510,7 +518,7 @@ Le metriche `sufficiency_mse` e `comprehensiveness_abs_drop` usano la media dell
 #### 6.7.2 Assunzione di Linearità Additiva
 
 La CCC assume che le spiegazioni seguino una forma additiva $g(x) = w_0 + \sum \phi_i(x)$. Questo:
-- È valido per SHAP, LIME e MAPLE
+- È valido per SHAP, LIME e MAPLE dopo la conversione dei coefficienti locali in contributi additivi
 - NON è valido per metodi basati su sottogruppi o regole
 - Limita l'applicabilità a explainers specifici
 

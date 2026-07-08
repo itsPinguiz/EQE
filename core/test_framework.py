@@ -404,7 +404,7 @@ class ExperimentOrchestrator:
         if self.n_explain is not None:
             X_explain = self.X_test[: self.n_explain]
             
-        # 1. Weight Caching: Generate SHAP/LIME ONCE
+        # 1. Contribution caching: generate explainer outputs once
         explanations_cache = self.generate_explanations(X_explain)
         
         # 2. K-Loop Optimization (Instant Compute iterating over cache)

@@ -219,12 +219,12 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         ValueError
             If ``k_features`` exceeds the number of features in ``weights``.
         """
-        # 1 & 2: Identify and truncate the feature weights (S_K)
+        # 1 & 2: Identify and truncate the additive contributions (S_K)
         weights_truncated = self._truncate_weights(weights)
 
         # 3: Calculate the truncated local prediction: g_K(x) = w_0 + sum(phi_i)
-        # Note: SHAP values and LIME local contributions are already the full attributions
-        # for the specific instance. They should NOT be multiplied by the raw X values.
+        # Explainer wrappers have already converted raw coefficients into
+        # additive contributions. They should NOT be multiplied again here.
         g_K = intercepts + np.sum(weights_truncated, axis=1)
 
         # 4: Return the Mean Squared Error (MSE)
@@ -249,7 +249,7 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
         Returns
         -------
         np.ndarray of shape (n_samples, n_features)
-            Weight matrix with all but the top-K entries zeroed out per row.
+            Contribution matrix with all but the top-K entries zeroed out per row.
         """
         return _top_k_weights(weights, self.k_features)
 
@@ -266,7 +266,7 @@ class RandomKConcordance(EvaluationMetric):
 
     This baseline keeps ``k_features`` randomly selected contributions per
     instance instead of the explainer's top-K contributions. It uses the same
-    explanation weights and intercepts as the main CCC metric, making it a
+    explanation contributions and intercepts as the main CCC metric, making it a
     direct sanity check for whether top-K selection beats random feature
     selection.
     """

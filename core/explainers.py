@@ -25,7 +25,7 @@ from core.third_party.MAPLE import MAPLE
 class BaseExplainer(ABC):
     """
     Abstract base class for all explainers.
-    Ensures that every explainer produces attribution weights and intercepts
+    Ensures that every explainer produces additive contributions and intercepts
     in a standardized format expected by the ComplexityCalibratedConcordance metric.
     """
     
@@ -35,7 +35,7 @@ class BaseExplainer(ABC):
     @abstractmethod
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """
-        Generates feature attribution weights and base intercepts for the given instances.
+        Generates feature contributions and base intercepts for the given instances.
         
         Parameters
         ----------
@@ -45,7 +45,8 @@ class BaseExplainer(ABC):
         Returns
         -------
         weights : np.ndarray of shape (n_samples, n_features)
-            The attribution assigned to each feature for each instance.
+            Per-feature additive contributions phi_i(x). The name is kept for
+            backward compatibility with the rest of the pipeline.
         intercepts : np.ndarray of shape (n_samples,)
             The base predictive value (w_0) for each instance before adding feature contributions.
         """
@@ -143,7 +144,12 @@ class ShapExplainer(BaseExplainer):
 
 
 class LimeTabularExplainerWrapper(BaseExplainer):
-    """Wrapper for LIME (Local Interpretable Model-agnostic Explanations)."""
+    """Wrapper for LIME (Local Interpretable Model-agnostic Explanations).
+
+    LIME returns coefficients of a local linear surrogate fitted on its
+    interpretable/scaled representation z. CCC expects additive contributions,
+    so the wrapper converts each coefficient beta_i into beta_i * z_i(x).
+    """
     
     def __init__(self, model: BlackBoxModel, background_data: npt.NDArray[np.float64], feature_names: list[str] = None, n_jobs: int = 1):
         super().__init__(model)
@@ -168,12 +174,37 @@ class LimeTabularExplainerWrapper(BaseExplainer):
             predict_fn=self.model.predict_proba,
             num_features=n_features
         )
-        
+
+        interpretable_row = self._interpretable_row(exp, n_features)
         weights = np.zeros(n_features)
-        for feature_idx, weight in exp.as_map()[1]:
-            weights[feature_idx] = weight
+        for feature_idx, coefficient in exp.as_map()[1]:
+            weights[feature_idx] = coefficient * interpretable_row[feature_idx]
         
         return weights, exp.intercept[1]
+
+    @staticmethod
+    def _interpretable_row(exp, n_features: int) -> np.ndarray:
+        """Return the z(x) row used by LIME's local surrogate.
+
+        ``exp.as_map()`` exposes surrogate coefficients. The row stored in the
+        domain mapper is the representation used when predicting the original
+        instance with those coefficients.
+        """
+        scaled_row = getattr(exp.domain_mapper, "scaled_row", None)
+        if scaled_row is None:
+            raise ValueError("LIME explanation does not expose the interpretable row.")
+
+        if hasattr(scaled_row, "toarray"):
+            row = np.asarray(scaled_row.toarray(), dtype=float).ravel()
+        else:
+            row = np.asarray(scaled_row, dtype=float).ravel()
+
+        if row.shape[0] != n_features:
+            raise ValueError(
+                "LIME interpretable row has incompatible shape: "
+                f"expected {n_features}, got {row.shape[0]}."
+            )
+        return row
         
     def explain(self, X: npt.NDArray[np.float64]) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         n_samples, n_features = X.shape

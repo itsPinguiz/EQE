@@ -47,6 +47,13 @@ where:
 - `phi_i(x)` is the additive contribution of feature `i`;
 - lower `ccc_mse` means better compact faithfulness.
 
+CCC is defined over additive contributions, not over raw explainer
+coefficients. The explainer wrappers therefore normalize their outputs before
+the metric is computed: SHAP already returns additive contributions; MAPLE
+local coefficients are converted as `phi_i(x) = beta_i * x_i`; LIME surrogate
+coefficients are converted as `phi_i(x) = beta_i * z_i(x)`, where `z_i(x)` is
+LIME's interpretable/scaled representation of the explained instance.
+
 The framework also reports `random_k_mse`, a direct sanity-check baseline that
 keeps `K` random features from the same explanation weights. This tests whether
 the explainer's top-K features preserve more signal than arbitrary feature
@@ -86,7 +93,7 @@ The benchmark pipeline is:
 1. load and preprocess the selected dataset;
 2. train each configured black-box model;
 3. generate local explanations for every model/explainer pair;
-4. cache the explanation weights and intercepts for the run;
+4. cache the additive explanation contributions and intercepts for the run;
 5. compute all configured metrics for every `K`;
 6. aggregate results across seeds;
 7. save `results/latest.md` and regenerate summary figures.
@@ -293,6 +300,10 @@ uv run python -m core.visualize feature-reduction --dataset breast_cancer --mode
 
 - CCC assumes additive explanation outputs of the form
   `g(x) = w_0 + sum(phi_i(x))`.
+- Raw local surrogate coefficients must be converted to additive
+  contributions before CCC is computed. In particular, LIME uses its
+  interpretable representation `z(x)`, so the contribution is
+  `phi_i(x) = beta_i * z_i(x)`.
 - Cross-dataset comparisons should prefer `ccc_mse_normalized`, because raw MSE
   depends on the prediction distribution.
 - Perturbation metrics such as `sufficiency_mse` and
