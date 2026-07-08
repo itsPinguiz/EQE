@@ -344,16 +344,18 @@ normally display only a subset of features.
   intersection: fidelity under an explicit cognitive budget.}
   \label{tab:ccc-comparison}
   \centering
-  \small
-  \begin{tabular}{p{0.22\columnwidth}p{0.22\columnwidth}p{0.22\columnwidth}p{0.22\columnwidth}}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{1.12}
+  \begin{tabular}{@{}p{0.29\columnwidth}p{0.63\columnwidth}@{}}
     \toprule
-    Metric & Quantity measured & What it misses & How CCC differs \\
+    Metric & Relation to CCC \\
     \midrule
-    Full MSE/local accuracy & All-feature reconstruction & Doesn't evaluate truncated explanation & Measures top-$K$ reconstruction \\
-    Sufficiency & Top-$K$ features as perturbed inputs & Depends on masking baseline & Evaluates additive concordance directly \\
-    Comprehensiveness & Prediction change when removing features & Perturbation effect, not additive form & Measures local concordance \\
-    Infidelity/sensitivity & Stability under input perturbations & No cognitive budget constraint & Explicitly budget-conditioned \\
-    Conciseness & How short the explanation is & Doesn't measure faithfulness & Unites compactness and faithfulness \\
+    Full MSE/local accuracy & Evaluates all-feature reconstruction; CCC measures the reconstruction after top-$K$ truncation. \\
+    Sufficiency & Keeps top-$K$ input features under a masking baseline; CCC evaluates additive concordance directly. \\
+    Comprehensiveness & Measures prediction change after removing features; CCC asks whether displayed additive terms reconstruct $f(x)$. \\
+    Infidelity/sensitivity & Measures stability under input perturbations; CCC adds an explicit cognitive feature budget. \\
+    Conciseness & Measures explanation size alone; CCC combines compactness with predictive faithfulness. \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -382,7 +384,7 @@ full-explanation fidelity does not guarantee faithful compact explanations.
   constant while CCC varies with $K$.}
   \label{tab:ccc-vs-full}
   \centering
-  \begin{tabular}{rrrrr}
+  \begin{tabular}{rrrrrr}
     \toprule
     $K$ & 5 & 6 & 7 & 8 & 9 \\
     \midrule
