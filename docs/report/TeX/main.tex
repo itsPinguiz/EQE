@@ -34,16 +34,19 @@
 }
 
 \begin{abstract}
-Local explanation methods are often evaluated with complete explanations, while
-users usually inspect only a few features. This project introduces
-Complexity-Calibrated Local Concordance (CCC), a functionally-grounded metric
-that tests whether an additive explanation remains faithful after top-$K$
-truncation. We implement an evaluation framework for tabular classification
-using two UCI datasets, two black-box models, and three explainers: LIME, SHAP,
-and MAPLE. The experiments show that SHAP is the strongest method under compact
-faithfulness, but also that exact full fidelity does not guarantee a
-faithful compact explanation. CCC therefore complements existing XAI metrics by
-making the trade-off between fidelity and human-sized explanations explicit.
+Local explanation methods are often evaluated using complete additive reconstructions,
+although user-facing explanations typically display only a small subset of features.
+This creates a gap between full fidelity and displayed fidelity. We introduce
+Complexity-Calibrated Local Concordance (CCC), a budget-aware metric that measures
+how accurately the top-$K$ additive contributions reconstruct the black-box prediction.
+CCC evaluates compact faithfulness: the fidelity of the explanation after imposing
+a cognitive feature budget $K\in\{5,6,7,8,9\}$. We implement CCC together with standard
+comparison metrics and apply it to LIME, SHAP, and MAPLE on UCI Breast Cancer Wisconsin
+Diagnostic and Adult datasets. The experiments show that full fidelity does not guarantee
+faithful compact explanations, and that explainers differ substantially in how quickly
+their top-ranked features recover the model prediction. CCC therefore complements
+existing XAI metrics by making the trade-off between fidelity and human-sized
+explanations explicit.
 \end{abstract}
 
 \keywords{Explainable AI, local explanations, faithfulness, cognitive complexity}
@@ -122,7 +125,7 @@ For an additive explanation
 $g(x)=w_0+\sum_i \phi_i(x)$, a method may be perfectly faithful when every
 feature contribution is included. SHAP, for example, is designed to satisfy
 local accuracy under the full additive reconstruction. But a practitioner may
-show only the largest four to nine contributions in a dashboard, report, or
+show only the largest five to nine contributions in a dashboard, report, or
 interactive tool. If the omitted contributions collectively matter, the compact
 explanation can misrepresent the model even though the full explanation is
 exact.
@@ -163,7 +166,13 @@ and MAPLE coefficients are converted into contributions inside the explainer
 wrapper. This normalization is essential because CCC assumes a common additive
 form across methods.
 
-\subsection{Implemented Metrics}
+\subsection{Explainer Conversion Protocol}
+The framework normalizes different explainers into a common additive form
+$g(x)=w_0+\sum_i \phi_i(x)$. For SHAP, values are already additive contributions.
+For LIME, the surrogate model coefficients are used as instance-level contributions.
+For MAPLE, each coefficient $\beta_i$ is multiplied by the corresponding feature
+value to obtain $\phi_i = \beta_i \cdot x_i$. All three return weights and
+intercepts in the same format expected by CCC.
 Table~\ref{tab:metrics} summarizes the implemented metrics. Full MSE measures
 the fidelity of the complete additive explanation. Random-$K$ MSE keeps $K$
 random contributions from the same weight vector and is repeated 30 times; it
@@ -284,7 +293,7 @@ small and large $K$. On Adult, XGBoost is more accurate than the neural network,
 but CCC still varies primarily with explainer choice rather than accuracy.
 
 Figure~\ref{fig:ccc-by-k} and Table~\ref{tab:ccc-results} show three main
-patterns. First, SHAP is the strongest method under CCC. Its error decreases
+patterns. First, SHAP achieves the lowest CCC scores in the tested configurations. Its error decreases
 rapidly as $K$ increases, reaching near-zero values at $K=9$ on Adult/XGBoost
 and Breast Cancer/XGBoost. This is expected from SHAP's additive local accuracy,
 but the non-zero values at small $K$ are the important observation: a full SHAP
@@ -299,12 +308,13 @@ signal in a small subset of features, even if the full local approximation is
 not terrible.
 
 Third, LIME is unstable across settings. On Adult/NN, LIME CCC remains above
-2.6 even at $K=9$, several orders of magnitude worse than SHAP. On
-Breast Cancer/XGBoost, LIME is closer to SHAP for very small budgets but does
-not improve monotonically with $K$: the error decreases until about $K=5$ or
-$K=6$ and then rises again. This behavior indicates that adding more locally
-weighted features does not necessarily make the truncated reconstruction closer
-to the black-box probability.
+2.6 even at $K=9$, several orders of magnitude worse than SHAP. This indicates
+that the surrogate model coefficients do not reconstruct the black-box probability
+well in the additive form $g_K(x)=w_0+\sum_{i\in S_K}\phi_i$. On Breast Cancer/XGBoost,
+LIME is closer to SHAP for very small budgets but does not improve monotonically
+with $K$: the error decreases until about $K=5$ or $K=6$ and then rises again.
+This behavior indicates that adding more locally weighted features does not
+necessarily make the truncated reconstruction closer to the black-box probability.
 
 \subsection{Top-$K$ versus Random-$K$}
 The random-$K$ baseline gives CCC an internal sanity check. In most tested
@@ -317,23 +327,49 @@ prediction signal. When the gap is smaller, as for some MAPLE configurations,
 the feature ranking is less informative.
 
 \subsection{What CCC Reveals}
-The main insight is that CCC separates three notions that can otherwise be
-confused: model accuracy, full local fidelity, and compact local fidelity.
-SHAP's full MSE is approximately zero because the full additive reconstruction
-matches the explained model output, but CCC still exposes the cost of showing
-only five to nine features. MAPLE can have moderate full MSE but poor top-$K$
-concentration. LIME can produce local weights whose selected features do not
-reconstruct the probability well. These distinctions are directly relevant for
-systems that display explanations to humans, because those systems normally
-display only a subset of features.
+CCC shifts the evaluation target from ``Is the full explanation faithful?'' to
+``Is the displayed explanation faithful?'' The main insight is that CCC separates
+three notions that can otherwise be confused: model accuracy, full local fidelity,
+and compact local fidelity. SHAP's full MSE is approximately zero because the full
+additive reconstruction matches the explained model output, but CCC still exposes
+the cost of showing only five to nine features. MAPLE can have moderate full MSE
+but poor top-$K$ concentration. LIME can produce local weights whose selected
+features do not reconstruct the probability well. These distinctions are directly
+relevant for systems that display explanations to humans, because those systems
+normally display only a subset of features.
+
+\begin{table}[t]
+  \caption{CCC compared with existing evaluation metrics. While other metrics
+  treat fidelity and compactness as separate properties, CCC evaluates their
+  intersection: fidelity under an explicit cognitive budget.}
+  \label{tab:ccc-comparison}
+  \centering
+  \small
+  \begin{tabular}{p{0.22\columnwidth}p{0.22\columnwidth}p{0.22\columnwidth}p{0.22\columnwidth}}
+    \toprule
+    Metric & Quantity measured & What it misses & How CCC differs \\
+    \midrule
+    Full MSE/local accuracy & All-feature reconstruction & Doesn't evaluate truncated explanation & Measures top-$K$ reconstruction \\
+    Sufficiency & Top-$K$ features as perturbed inputs & Depends on masking baseline & Evaluates additive concordance directly \\
+    Comprehensiveness & Prediction change when removing features & Perturbation effect, not additive form & Measures local concordance \\
+    Infidelity/sensitivity & Stability under input perturbations & No cognitive budget constraint & Explicitly budget-conditioned \\
+    Conciseness & How short the explanation is & Doesn't measure faithfulness & Unites compactness and faithfulness \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Does CCC add useful information?}
 Although full fidelity indicates whether the complete additive explanation
 reconstructs the model output, it does not evaluate the quality of the explanation
 after top-$K$ truncation. CCC adds this missing information by measuring how much
 predictive fidelity is preserved when only a cognitively limited number of features
-is shown. Two explanations with identical full MSE can have different CCC values,
-revealing distinct levels of compact faithfulness.
+is shown. CCC differs from existing metrics in two ways. First, it operates on
+additive explanations and measures reconstruction error directly, similar to LEAF's
+local concordance but with an explicit complexity budget. Second, unlike infidelity
+or AOPC/deletion metrics that perturb inputs, CCC evaluates whether the top-$K$
+feature contributions alone reconstruct the black-box probability. Two explanations
+with identical full MSE can have different CCC values, revealing distinct levels of
+compact faithfulness.
 
 \textbf{Comparison with full MSE.} Table~\ref{tab:ccc-vs-full} shows aggregate values
 where full MSE is invariant across $K$ while CCC changes. For example, on
@@ -396,6 +432,13 @@ additive explanation remains faithful to the black-box model. This makes CCC
 particularly relevant for practical XAI settings where explanations must be both
 faithful to the model and short enough to be inspected by a human.
 
+CCC can also be interpreted as a family of metrics parameterized by the feature
+budget. The full CCC curve $\{CCC_K\}_{K=5}^9$ describes how reconstruction
+error decreases as more features are included. This curve can be summarized
+by the AUC-CCC (area under the curve) or by the minimum faithful $K$ needed
+to reach a model-specific error threshold, enabling CCC to serve as a runtime
+quality-control signal for deployed explanation tools.
+
 \subsection{Limitations}
 CCC applies naturally to additive explanations, but it is not directly suitable
 for rule lists, counterfactual sets, prototypes, or explanations whose output is
@@ -405,22 +448,30 @@ divides the error by the variance of black-box probabilities, although the main
 archived run discussed here reports raw CCC. Perturbation metrics such as
 sufficiency and comprehensiveness depend on the masking baseline; the current
 implementation uses the mean training vector, which is simple and reproducible
-but may create unrealistic inputs for correlated features. Finally, the
-benchmark is limited to two datasets and two model families. The conclusions are
-therefore strongest as evidence for the proposed evaluation protocol, not as a
-universal ranking of all XAI methods.
+but may create unrealistic inputs for correlated features. The feature budget $K$
+is an operational proxy for cognitive complexity following Miller's ``7 ± 2'' range,
+but showing $K$ one-hot-encoded features does not equal exposing $K$ semantic
+concepts, which limits interpretation on Adult. Finally, the benchmark is limited
+to two datasets and two model families. The conclusions are therefore strongest
+as evidence for the proposed evaluation protocol, not as a universal ranking of
+all XAI methods.
 
 \section{Conclusions}
 EQE contributes a compact-faithfulness evaluation of local explanations through
-Complexity-Calibrated Local Concordance. CCC complements existing XAI metrics by
-asking whether an additive explanation remains faithful after imposing a
-human-sized feature budget. The benchmark shows that SHAP is the strongest
-method under this criterion, MAPLE is a useful intermediate comparison, and
-LIME is less reliable in the tested configurations. More importantly, the
-results show that full-explanation fidelity and compact-explanation fidelity
-are distinct evaluation targets. This makes CCC useful for practical XAI
-settings where explanations must be both faithful to the model and short enough
-to be inspected by a human.
+Complexity-Calibrated Local Concordance. This work makes three contributions.
+First, it introduces CCC, a budget-conditioned local fidelity metric that measures
+whether the top-$K$ displayed additive contributions reconstruct the black-box
+prediction. Second, it shows empirically that full additive fidelity and compact
+additive fidelity are distinct evaluation targets: a method can achieve near-zero
+full MSE while still losing fidelity after truncation. Third, it provides a
+benchmark protocol comparing top-$K$ CCC against random-$K$ baselines, sufficiency,
+comprehensiveness, and full MSE across datasets, models, and explainers. The
+benchmark shows that SHAP achieves the lowest CCC scores in the tested configurations,
+MAPLE is a useful intermediate comparison, and LIME is less reliable in the tested
+configurations. More importantly, the results show that full-explanation fidelity and
+compact-explanation fidelity are distinct evaluation targets. This makes CCC
+particularly relevant for practical XAI settings where explanations must be both
+faithful to the model and short enough to be inspected by a human.
 
 The most immediate extension is to broaden the benchmark without changing the
 metric definition. Additional tabular datasets would test whether CCC remains
@@ -431,7 +482,7 @@ faithfulness depends more on the explainer or on the geometry of the learned
 decision function.
 
 A second direction is to make the feature budget adaptive. The current report
-uses fixed values from four to nine because they are easy to compare and align
+uses fixed values from five to nine because they are easy to compare and align
 with a cognitive-complexity motivation. In an interface, however, a useful
 system could choose the smallest $K$ whose CCC falls below a model-specific
 threshold, or expose a warning when no compact explanation reaches acceptable
