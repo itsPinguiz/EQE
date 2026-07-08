@@ -4,6 +4,7 @@ checkpoints/*
 __pycache__/
 *.pyc
 .rooignore
+.claudeignore
 
 # ...But force Git to track the hidden .gitkeep files
 !.venv/.gitkeep
