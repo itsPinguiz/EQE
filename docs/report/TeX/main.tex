@@ -67,7 +67,7 @@ reduced to a small number of high-impact features. This is not only a design
 preference: Miller's classic work on working-memory limits suggests that humans
 can actively process only a small number of information units at once~\cite{miller1956magical}.
 For this reason, the project evaluates explanations under a feature budget
-$K \in \{4,\ldots,9\}$.
+$K \in \{5,6,7,8,9\}$, aligning with Miller's cognitive limit range.
 
 The contribution is a benchmark and metric centered on \emph{compact
 faithfulness}. We introduce Complexity-Calibrated Local Concordance (CCC), which
@@ -116,7 +116,7 @@ another asks whether the explanation is small. CCC combines the two by asking
 whether the explanation is still faithful \emph{after} enforcing a small
 top-$K$ budget.
 
-\section{Research Gap}
+\section{Research gaps}
 The project targets the gap between mathematical fidelity and usable fidelity.
 For an additive explanation
 $g(x)=w_0+\sum_i \phi_i(x)$, a method may be perfectly faithful when every
@@ -163,7 +163,7 @@ and MAPLE coefficients are converted into contributions inside the explainer
 wrapper. This normalization is essential because CCC assumes a common additive
 form across methods.
 
-\subsection{Comparison Metrics}
+\subsection{Implemented Metrics}
 Table~\ref{tab:metrics} summarizes the implemented metrics. Full MSE measures
 the fidelity of the complete additive explanation. Random-$K$ MSE keeps $K$
 random contributions from the same weight vector and is repeated 30 times; it
@@ -193,7 +193,24 @@ for cross-dataset comparison and truncation analysis.
   \end{tabular}
 \end{table}
 
-\section{Software Architecture}
+\section{Experiments and analysis}
+\subsection{Experimental Setup}
+The main benchmark uses two public datasets: UCI Breast Cancer Wisconsin
+Diagnostic~\cite{uciwdbc} and UCI Adult~\cite{uciadult}. The classifiers are
+XGBoost and a neural network with two hidden layers of 100 units and a maximum
+of 500 training iterations. The explainers are LIME, SHAP KernelExplainer, and
+MAPLE. SHAP uses a sampled training background of size 100. MAPLE uses random
+forest feature extraction, 100 estimators, a validation size of 100, a training
+subsample of 2000 when available, and regularization 0.001. The benchmark
+evaluates $K=5,6,7,8,9$ over seeds 42, 123, and 2026, focusing on Miller's cognitive limit range.
+
+The results discussed below come from the 20260629 archive file under
+\texttt{results/archive/}, which contains aggregate tables grouped by dataset,
+model, explainer, and $K$. The run reports six dataset--seed executions and
+includes model accuracy plus CCC, full MSE, sufficiency, comprehensiveness, and
+random-$K$ MSE.
+
+\subsection{Software Architecture}
 The project is organized as a reproducible Python benchmark. The entry point
 \texttt{core/main.py} reads \texttt{config.yml}, builds a matrix of
 dataset--seed runs, executes them in parallel with joblib, and writes Markdown
@@ -212,22 +229,6 @@ standardizes features. The model wrappers expose a uniform \texttt{train},
 and a scikit-learn multilayer perceptron~\cite{scikit-learn}. The visualization
 module generates summary charts from result files and per-instance top-$K$
 reduction figures for presentation.
-
-\section{Experimental Setup}
-The main benchmark uses two public datasets: UCI Breast Cancer Wisconsin
-Diagnostic~\cite{uciwdbc} and UCI Adult~\cite{uciadult}. The classifiers are
-XGBoost and a neural network with two hidden layers of 100 units and a maximum
-of 500 training iterations. The explainers are LIME, SHAP KernelExplainer, and
-MAPLE. SHAP uses a sampled training background of size 100. MAPLE uses random
-forest feature extraction, 100 estimators, a validation size of 100, a training
-subsample of 2000 when available, and regularization 0.001. The benchmark
-evaluates $K=4,5,6,7,8,9$ over seeds 42, 123, and 2026.
-
-The results discussed below come from the 20260629 archive file under
-\texttt{results/archive/}, which contains aggregate tables grouped by dataset,
-model, explainer, and $K$. The run reports six dataset--seed executions and
-includes model accuracy plus CCC, full MSE, sufficiency, comprehensiveness, and
-random-$K$ MSE.
 
 \begin{table}[t]
   \caption{Mean model accuracy across the three seeds.}
@@ -257,26 +258,25 @@ random-$K$ MSE.
 
 \begin{table*}[t]
   \caption{Representative aggregate CCC values from
-  \texttt{results\_20260629\_105230.md}. Lower is better.}
+  \texttt{results\_20260629\_105230.md}. Lower is better. (K=4 excluded per Miller's cognitive limit focus.)}
   \label{tab:ccc-results}
   \centering
-  \begin{tabular}{llrrrrrr}
+  \begin{tabular}{llrrrrr}
     \toprule
-    Dataset/model & Explainer & $K=4$ & $K=5$ & $K=6$ & $K=7$ & $K=8$ & $K=9$ \\
+    Dataset/model & Explainer & $K=5$ & $K=6$ & $K=7$ & $K=8$ & $K=9$ \\
     \midrule
-    Adult/NN & SHAP  & 0.0125 & 0.0074 & 0.0040 & 0.0020 & 0.0008 & 0.0002 \\
-    Adult/NN & MAPLE & 0.0590 & 0.0590 & 0.0590 & 0.0590 & 0.0590 & 0.0590 \\
-    Adult/NN & LIME  & 3.4195 & 3.3630 & 3.2186 & 3.0533 & 2.8499 & 2.6331 \\
-    Adult/XGB & SHAP & 0.0029 & 0.0014 & 0.0007 & 0.0003 & 0.0001 & 0.0000 \\
-    Adult/XGB & MAPLE & 0.0181 & 0.0180 & 0.0180 & 0.0179 & 0.0179 & 0.0179 \\
-    Breast/XGB & SHAP & 0.0286 & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
-    Breast/XGB & MAPLE & 0.1210 & 0.0755 & 0.0556 & 0.0555 & 0.0405 & 0.0341 \\
-    Breast/XGB & LIME & 0.0518 & 0.0396 & 0.0401 & 0.0408 & 0.0468 & 0.0530 \\
+    Adult/NN & SHAP  & 0.0074 & 0.0040 & 0.0020 & 0.0008 & 0.0002 \\
+    Adult/NN & MAPLE & 0.0590 & 0.0590 & 0.0590 & 0.0590 & 0.0590 \\
+    Adult/NN & LIME  & 3.3630 & 3.2186 & 3.0533 & 2.8499 & 2.6331 \\
+    Adult/XGB & SHAP & 0.0014 & 0.0007 & 0.0003 & 0.0001 & 0.0000 \\
+    Adult/XGB & MAPLE & 0.0180 & 0.0180 & 0.0179 & 0.0179 & 0.0179 \\
+    Breast/XGB & SHAP & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
+    Breast/XGB & MAPLE & 0.0755 & 0.0556 & 0.0555 & 0.0405 & 0.0341 \\
+    Breast/XGB & LIME & 0.0396 & 0.0401 & 0.0408 & 0.0468 & 0.0530 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-\section{Results and Analysis}
 Model accuracy, shown in Table~\ref{tab:accuracy}, is not sufficient to select
 an explainer. On Breast Cancer, the neural network is slightly more accurate
 than XGBoost, but SHAP explanations for XGBoost reach lower compact error at
@@ -291,7 +291,7 @@ but the non-zero values at small $K$ are the important observation: a full SHAP
 explanation can be exact while its compact version still loses fidelity.
 
 Second, MAPLE is an intermediate baseline, with behavior that depends on the
-dataset. On Breast Cancer/XGBoost, increasing $K$ reduces CCC from 0.1210 to
+dataset. On Breast Cancer/XGBoost, increasing $K$ reduces CCC from 0.0755 to
 0.0341, meaning that the top-ranked contributions recover some predictive
 signal. On Adult/NN and Adult/XGBoost, however, MAPLE is almost flat across
 $K$. This suggests that the ranking does not concentrate the reconstruction
@@ -306,7 +306,7 @@ $K=6$ and then rises again. This behavior indicates that adding more locally
 weighted features does not necessarily make the truncated reconstruction closer
 to the black-box probability.
 
-\subsection{\texorpdfstring{Top-$K$ versus Random-$K$}{Top-K versus Random-K}}
+\subsection{Top-$K$ versus Random-$K$}
 The random-$K$ baseline gives CCC an internal sanity check. In most tested
 settings, the explainer-selected top-$K$ features outperform random subsets of
 the same explanation weights. For example, Adult/XGBoost SHAP at $K=9$ has CCC
@@ -321,13 +321,82 @@ The main insight is that CCC separates three notions that can otherwise be
 confused: model accuracy, full local fidelity, and compact local fidelity.
 SHAP's full MSE is approximately zero because the full additive reconstruction
 matches the explained model output, but CCC still exposes the cost of showing
-only four or five features. MAPLE can have moderate full MSE but poor top-$K$
+only five to nine features. MAPLE can have moderate full MSE but poor top-$K$
 concentration. LIME can produce local weights whose selected features do not
 reconstruct the probability well. These distinctions are directly relevant for
 systems that display explanations to humans, because those systems normally
 display only a subset of features.
 
-\section{Limitations}
+\subsection{Does CCC add useful information?}
+Although full fidelity indicates whether the complete additive explanation
+reconstructs the model output, it does not evaluate the quality of the explanation
+after top-$K$ truncation. CCC adds this missing information by measuring how much
+predictive fidelity is preserved when only a cognitively limited number of features
+is shown. Two explanations with identical full MSE can have different CCC values,
+revealing distinct levels of compact faithfulness.
+
+\textbf{Comparison with full MSE.} Table~\ref{tab:ccc-vs-full} shows aggregate values
+where full MSE is invariant across $K$ while CCC changes. For example, on
+Breast Cancer/XGBoost, SHAP has full MSE of zero for all $K$, but CCC decreases
+from 0.0160 at $K=5$ to 0.0003 at $K=9$. This demonstrates that a perfect
+full-explanation fidelity does not guarantee faithful compact explanations.
+
+\begin{table}[t]
+  \caption{CCC vs full MSE for SHAP on Breast Cancer/XGBoost. Full MSE remains
+  constant while CCC varies with $K$.}
+  \label{tab:ccc-vs-full}
+  \centering
+  \begin{tabular}{rrrrr}
+    \toprule
+    $K$ & 5 & 6 & 7 & 8 & 9 \\
+    \midrule
+    full MSE & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 \\
+    CCC & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[t]
+  \caption{CCC vs sufficiency/comprehensiveness on Adult/XGBoost with $K=8$.
+  Different metrics produce different explainer rankings.}
+  \label{tab:ccc-vs-perturb}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    Explainer & CCC & Sufficiency & Comprehensiveness \\
+    \midrule
+    SHAP  & 0.000134 & 0.0628 & 0.2278 \\
+    MAPLE & 0.017888 & \textbf{0.0333} & 0.2299 \\
+    LIME  & 0.110422 & 0.1018 & 0.2052 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[t]
+  \caption{CCC vs random-$K$ baseline on Adult/XGBoost with $K=9$. Top-$K$ selection
+  is much better than random feature subsets.}
+  \label{tab:ccc-vs-random}
+  \centering
+  \begin{tabular}{lrr}
+    \toprule
+    Explainer & CCC & Random-$K$ MSE \\
+    \midrule
+    SHAP  & 0.000031 & 0.0863 \\
+    MAPLE & 0.017863 & 0.0385 \\
+    LIME  & 0.109552 & 0.5250 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Overall, CCC complements existing XAI metrics by evaluating a property that the
+others do not capture: compact faithfulness under a fixed feature budget. While
+full MSE measures complete explanation fidelity and sufficiency/comprehensiveness
+measure feature perturbation effects, CCC specifically asks whether the truncated
+additive explanation remains faithful to the black-box model. This makes CCC
+particularly relevant for practical XAI settings where explanations must be both
+faithful to the model and short enough to be inspected by a human.
+
+\subsection{Limitations}
 CCC applies naturally to additive explanations, but it is not directly suitable
 for rule lists, counterfactual sets, prototypes, or explanations whose output is
 not a decomposable sum. The metric also depends on the scale and calibration of
@@ -341,17 +410,18 @@ benchmark is limited to two datasets and two model families. The conclusions are
 therefore strongest as evidence for the proposed evaluation protocol, not as a
 universal ranking of all XAI methods.
 
-\section{Reproducibility and Submission Material}
-The implementation is contained in the submitted project archive and in the Git
-repository \url{https://github.com/itsPinguiz/EQE}. The main entry point is
-\texttt{core/main.py}; configuration is in \texttt{config.yml}; the archived
-20260629 result file is under \texttt{results/archive/}; and the extended
-technical notes are in \texttt{docs/relazione.md}. The public datasets are
-referenced above and are also included locally under \texttt{datasets/}. Slides
-are optional for submission; generated figures under \texttt{results/figures/}
-can be reused for the final presentation.
+\section{Conclusions}
+EQE contributes a compact-faithfulness evaluation of local explanations through
+Complexity-Calibrated Local Concordance. CCC complements existing XAI metrics by
+asking whether an additive explanation remains faithful after imposing a
+human-sized feature budget. The benchmark shows that SHAP is the strongest
+method under this criterion, MAPLE is a useful intermediate comparison, and
+LIME is less reliable in the tested configurations. More importantly, the
+results show that full-explanation fidelity and compact-explanation fidelity
+are distinct evaluation targets. This makes CCC useful for practical XAI
+settings where explanations must be both faithful to the model and short enough
+to be inspected by a human.
 
-\section{Future Work}
 The most immediate extension is to broaden the benchmark without changing the
 metric definition. Additional tabular datasets would test whether CCC remains
 stable when the number of features, categorical sparsity, and class imbalance
@@ -367,18 +437,6 @@ system could choose the smallest $K$ whose CCC falls below a model-specific
 threshold, or expose a warning when no compact explanation reaches acceptable
 fidelity. This would turn CCC from an offline benchmark metric into a runtime
 quality-control signal for deployed explanation tools.
-
-\section{Conclusions}
-EQE contributes a compact-faithfulness evaluation of local explanations through
-Complexity-Calibrated Local Concordance. CCC complements existing XAI metrics by
-asking whether an additive explanation remains faithful after imposing a
-human-sized feature budget. The benchmark shows that SHAP is the strongest
-method under this criterion, MAPLE is a useful intermediate comparison, and
-LIME is less reliable in the tested configurations. More importantly, the
-results show that full-explanation fidelity and compact-explanation fidelity
-are distinct evaluation targets. This makes CCC useful for practical XAI
-settings where explanations must be both faithful to the model and short enough
-to be inspected by a human.
 
 \clearpage
 \bibliographystyle{ACM-Reference-Format}
