@@ -268,7 +268,7 @@ def _build_run_matrix(experiment: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         {
             "dataset": experiment.get("dataset", "breast_cancer"),
-            "k_features": [experiment.get("k_features", experiment.get("k", 4))],
+            "k_features": [experiment.get("k_features", experiment.get("k", 5))],
             "seed": seed,
         }
         for seed in seeds
@@ -439,7 +439,7 @@ def main() -> None:
         metadata["k_features"] = ", ".join(str(v) for v in suite.get("k_features", []))
     else:
         metadata["dataset"] = experiment.get("dataset", "breast_cancer")
-        metadata["k_features"] = experiment.get("k_features", experiment.get("k", 4))
+        metadata["k_features"] = experiment.get("k_features", experiment.get("k", 5))
     
     output_path.write_text(
         _render_markdown_report(results, metadata, include_header, aggregate_results),

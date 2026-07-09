@@ -51,7 +51,7 @@ class ExperimentOrchestrator:
     def __init__(
         self,
         dataset_name: str,
-        k_features: Sequence[int] | int = 4,
+        k_features: Sequence[int] | int = 5,
         test_size: float = 0.2,
         random_state: int = 42,
         n_explain: int | None = None,

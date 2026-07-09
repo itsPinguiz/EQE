@@ -266,22 +266,26 @@ reduction figures for presentation.
 \end{figure*}
 
 \begin{table*}[t]
-  \caption{Representative aggregate CCC values from
-  \texttt{results\_20260629\_105230.md}. Lower is better. (K=4 excluded per Miller's cognitive limit focus.)}
-  \label{tab:ccc-results}
   \centering
+  \caption{Representative aggregate CCC values from
+  \texttt{results\_20260629\_105230.md}. Lower is better.}
+  \label{tab:ccc-results}
   \begin{tabular}{llrrrrr}
     \toprule
     Dataset/model & Explainer & $K=5$ & $K=6$ & $K=7$ & $K=8$ & $K=9$ \\
     \midrule
-    Adult/NN & SHAP  & 0.0074 & 0.0040 & 0.0020 & 0.0008 & 0.0002 \\
-    Adult/NN & MAPLE & 0.0590 & 0.0590 & 0.0590 & 0.0590 & 0.0590 \\
-    Adult/NN & LIME  & 3.3630 & 3.2186 & 3.0533 & 2.8499 & 2.6331 \\
-    Adult/XGB & SHAP & 0.0014 & 0.0007 & 0.0003 & 0.0001 & 0.0000 \\
-    Adult/XGB & MAPLE & 0.0180 & 0.0180 & 0.0179 & 0.0179 & 0.0179 \\
-    Breast/XGB & SHAP & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
+    Adult/NN & SHAP   & 0.0074 & 0.0040 & 0.0020 & 0.0008 & 0.0002 \\
+    Adult/NN & MAPLE  & 0.0590 & 0.0590 & 0.0590 & 0.0590 & 0.0590 \\
+    Adult/NN & LIME   & 3.3630 & 3.2186 & 3.0533 & 2.8499 & 2.6331 \\
+    Adult/XGB & SHAP  & 0.0014 & 0.0007 & 0.0003 & 0.0001 & 0.0000 \\
+    Adult/XGB & MAPLE & 0.0180 & 0.0179 & 0.0179 & 0.0179 & 0.0179 \\
+    Adult/XGB & LIME  & 0.1163 & 0.1134 & 0.1117 & 0.1104 & 0.1096 \\
+    Breast/NN & SHAP   & 0.0319 & 0.0185 & 0.0094 & 0.0038 & 0.0009 \\
+    Breast/NN & MAPLE  & 0.0847 & 0.0663 & 0.0561 & 0.0461 & 0.0364 \\
+    Breast/NN & LIME   & 0.1223 & 0.1037 & 0.0995 & 0.1129 & 0.1313 \\
+    Breast/XGB & SHAP  & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
     Breast/XGB & MAPLE & 0.0755 & 0.0556 & 0.0555 & 0.0405 & 0.0341 \\
-    Breast/XGB & LIME & 0.0396 & 0.0401 & 0.0408 & 0.0468 & 0.0530 \\
+    Breast/XGB & LIME  & 0.0396 & 0.0401 & 0.0408 & 0.0468 & 0.0530 \\
     \bottomrule
   \end{tabular}
 \end{table*}

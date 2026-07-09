@@ -145,9 +145,8 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
     ----------
     k_features : int, optional
         The cognitive complexity limit K (i.e., the maximum number of
-        features allowed in the explanation). Defaults to ``4``, following
-        the conservative estimate of human working memory capacity used in
-        the XAI literature.
+        features allowed in the explanation). Defaults to ``5``, following
+        Miller's cognitive limit range (5-9) used in this benchmark.
 
     Attributes
     ----------
@@ -156,7 +155,7 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
 
     Examples
     --------
-    >>> metric = ComplexityCalibratedConcordance(k_features=4)
+    >>> metric = ComplexityCalibratedConcordance(k_features=5)
     >>> score = metric.compute(
     ...     f_proba=model.predict_proba(X_test)[:, 1],
     ...     weights=shap_weights,       # shape (n_samples, n_features)
@@ -166,7 +165,7 @@ class ComplexityCalibratedConcordance(EvaluationMetric):
     >>> print(f"CCC Score (MSE): {score:.4f}")
     """
 
-    def __init__(self, k_features: int = 4) -> None:
+    def __init__(self, k_features: int = 5) -> None:
         if k_features < 1:
             raise ValueError(f"k_features must be >= 1, got {k_features}.")
         self.k_features = k_features
@@ -273,7 +272,7 @@ class RandomKConcordance(EvaluationMetric):
 
     def __init__(
         self,
-        k_features: int = 4,
+        k_features: int = 5,
         repeats: int = 30,
         random_state: int | None = 42,
     ) -> None:
@@ -364,7 +363,7 @@ class SufficiencyMSE(EvaluationMetric):
     the selected features are sufficient to preserve the model prediction.
     """
 
-    def __init__(self, k_features: int = 4) -> None:
+    def __init__(self, k_features: int = 5) -> None:
         if k_features < 1:
             raise ValueError(f"k_features must be >= 1, got {k_features}.")
         self.k_features = k_features
@@ -402,7 +401,7 @@ class ComprehensivenessAbsDrop(EvaluationMetric):
     selected features have stronger influence on the black-box prediction.
     """
 
-    def __init__(self, k_features: int = 4) -> None:
+    def __init__(self, k_features: int = 5) -> None:
         if k_features < 1:
             raise ValueError(f"k_features must be >= 1, got {k_features}.")
         self.k_features = k_features
@@ -445,7 +444,7 @@ class NormalizedCCC(EvaluationMetric):
     variance in black-box predictions. This enables cross-dataset comparison.
     """
 
-    def __init__(self, k_features: int = 4) -> None:
+    def __init__(self, k_features: int = 5) -> None:
         if k_features < 1:
             raise ValueError(f"k_features must be >= 1, got {k_features}.")
         self.k_features = k_features
@@ -480,7 +479,7 @@ class TopKDegradationRatio(EvaluationMetric):
     where full_mse ≈ 0 due to local accuracy guarantee.
     """
 
-    def __init__(self, k_features: int = 4) -> None:
+    def __init__(self, k_features: int = 5) -> None:
         if k_features < 1:
             raise ValueError(f"k_features must be >= 1, got {k_features}.")
         self.k_features = k_features

@@ -20,7 +20,7 @@ black-box prediction faithfully?
 
 This question is motivated by the cognitive constraint commonly summarized by
 Miller's Law: people can only hold a small number of information units in working
-memory at once. In this project, `K` is varied from 4 to 9 features.
+memory at once. In this project, `K` is varied from 5 to 9 features (Miller's cognitive limit range).
 
 ## Main Metric: CCC
 
@@ -66,7 +66,7 @@ subsets.
 | Datasets | [`breast_cancer`](https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic), [`adult`](https://archive.ics.uci.edu/dataset/2/adult) |
 | Black-box models | `xgboost`, `neuralnetwork` |
 | Explainers | `lime`, `shap`, `maple` |
-| Feature budgets | `K = 4, 5, 6, 7, 8, 9` |
+| Feature budgets | `K = 5, 6, 7, 8, 9` |
 | Seeds | `42`, `123`, `2026` |
 | Main metric | `ccc_mse` |
 | Control baseline | `random_k_mse` |
@@ -210,7 +210,7 @@ The most important knobs are in `config.yml`:
 experiment:
   suite:
     datasets: [breast_cancer, adult]
-    k_features: [4, 5, 6, 7, 8, 9]
+    k_features: [5, 6, 7, 8, 9]
   seeds: [42, 123, 2026]
   n_explain: 1000
   n_jobs: null
@@ -242,7 +242,7 @@ For a faster smoke test, reduce the suite and sample count:
 experiment:
   suite:
     datasets: [breast_cancer]
-    k_features: [4, 9]
+    k_features: [5, 9]
   seeds: [42]
   n_explain: 20
   n_jobs: 2
@@ -270,7 +270,7 @@ uv run python -m core.visualize feature-reduction \
   --model xgboost \
   --explainer shap \
   --instance-index 0 \
-  --k 4
+  --k 5
 ```
 
 This creates a figure showing:
@@ -283,10 +283,10 @@ This creates a figure showing:
 Useful presentation examples:
 
 ```bash
-uv run python -m core.visualize feature-reduction --dataset breast_cancer --model xgboost --explainer shap --instance-index 0 --k 4
+uv run python -m core.visualize feature-reduction --dataset breast_cancer --model xgboost --explainer shap --instance-index 0 --k 5
 uv run python -m core.visualize feature-reduction --dataset breast_cancer --model xgboost --explainer shap --instance-index 0 --k 9
-uv run python -m core.visualize feature-reduction --dataset breast_cancer --model xgboost --explainer lime --instance-index 0 --k 4
-uv run python -m core.visualize feature-reduction --dataset breast_cancer --model xgboost --explainer maple --instance-index 0 --k 4
+uv run python -m core.visualize feature-reduction --dataset breast_cancer --model xgboost --explainer lime --instance-index 0 --k 5
+uv run python -m core.visualize feature-reduction --dataset breast_cancer --model xgboost --explainer maple --instance-index 0 --k 5
 ```
 
 ## Metric Notes
