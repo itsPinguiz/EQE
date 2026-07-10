@@ -115,11 +115,8 @@ measure how explanations react to input perturbations. Benchmark projects such
 as XAI-Bench~\cite{liu2021xaibench} and OpenXAI~\cite{agarwal2022openxai}
 systematize these criteria across methods and datasets. Frameworks such as
 LEAF~\cite{amparore2021leaf} also include local concordance and conciseness
-criteria. However, these metrics usually treat faithfulness and compactness as
-separate properties: one metric asks whether the full explanation is faithful,
-another asks whether the explanation is small. CCC combines the two by asking
-whether the explanation is still faithful \emph{after} enforcing a small
-top-$K$ budget.
+criteria. CCC differs from these by combining both properties: it evaluates
+faithfulness \emph{after} enforcing a small top-$K$ budget.
 
 \section{Research gaps}
 The project targets the gap between mathematical fidelity and usable fidelity.
@@ -230,8 +227,8 @@ dataset--seed runs, executes them in parallel with joblib, and writes Markdown
 results. The experiment orchestration is implemented in
 \texttt{core/test\_framework.py}. For each dataset and seed, the orchestrator:
 loads and scales the data, trains every configured model, generates
-explanations for every model/explainer pair, caches the weights and intercepts,
-and computes every metric for all configured values of $K$.
+explanations for every model/explainer pair, and computes every metric across
+all configured values of $K$.
 
 The data loaders support the local copies of the UCI Breast Cancer Wisconsin
 Diagnostic and Adult datasets. Breast Cancer uses the WDBC files and recovers
@@ -294,6 +291,33 @@ reduction figures for presentation.
   \end{tabular}
 \end{table*}
 
+\begin{table}[t]
+  \centering
+  \caption{Normalized CCC values at $K=5$ enable cross-dataset comparison. Values
+  close to zero indicate that top-$K$ reconstruction error is small relative to
+  prediction variance. LIME on Adult/NN shows values an order of magnitude larger,
+  revealing poor compactness for that dataset--model pair.}
+  \label{tab:ccc-normalized}
+  \begin{tabular}{llrr}
+    \toprule
+    Dataset/Model & Explainer & Normalized CCC & Degradation Ratio \\
+    \midrule
+    Adult/XGB & SHAP   & 0.014 & 0.000 \\
+    Adult/XGB & MAPLE  & 0.186 & 1.024 \\
+    Adult/XGB & LIME   & 1.197 & 1.096 \\
+    Adult/NN  & SHAP   & 0.056 & 0.000 \\
+    Adult/NN  & MAPLE  & 0.444 & 1.002 \\
+    Adult/NN  & LIME   & 12.99 & 20.04 \\
+    Breast/XGB & SHAP  & 0.073 & 0.000 \\
+    Breast/XGB & MAPLE & 0.348 & 4.45 \\
+    Breast/XGB & LIME  & 0.182 & 0.496 \\
+    Breast/NN  & SHAP  & 0.140 & 0.000 \\
+    Breast/NN  & MAPLE & 0.292 & 2.63 \\
+    Breast/NN  & LIME  & 0.599 & 0.540 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 Model accuracy does not inform explainer selection. A high-accuracy classifier
 can be difficult to explain compactly, while a slightly less accurate model may
 produce local attributions that concentrate prediction evidence in fewer features.
@@ -302,7 +326,8 @@ On Breast Cancer, SHAP explanations for XGBoost reach lower compact error
 network, but CCC still varies primarily with explainer choice rather than accuracy.
 
 Figure~\ref{fig:ccc-by-k} and Table~\ref{tab:ccc-results} show three main
-patterns. First, SHAP achieves the lowest CCC scores in the tested configurations. Its error decreases
+patterns. Table~\ref{tab:ccc-normalized} adds normalized values and degradation ratios
+for cross-dataset comparison. First, SHAP achieves the lowest CCC scores in the tested configurations. Its error decreases
 rapidly as $K$ increases, reaching near-zero values at $K=9$ on Adult/XGBoost
 and Breast Cancer/XGBoost. This is expected from SHAP's additive local accuracy,
 but the non-zero values at small $K$ are the important observation: a full SHAP
@@ -322,8 +347,14 @@ that the surrogate model coefficients do not reconstruct the black-box probabili
 well in the additive form $g_K(x)=w_0+\sum_{i\in S_K}\phi_i$. On Breast Cancer/XGBoost,
 LIME is closer to SHAP for very small budgets but does not improve monotonically
 with $K$: the error decreases until about $K=5$ or $K=6$ and then rises again.
-This behavior indicates that adding more locally weighted features does not
-necessarily make the truncated reconstruction closer to the black-box probability.
+This non-monotonic behavior occurs because LIME lacks the local accuracy property
+that SHAP satisfies. LIME's coefficients are fitted from local surrogate models
+without guaranteeing convergence to the black-box probability. Consequently, when
+ranking features by magnitude alone, selected contributions may have signs discordant
+to the reconstruction direction, and their addition can increase the squared error.
+This observation highlights that CCC is particularly suited to explainers with
+additive local accuracy, while for methods like LIME the metric reveals the inherent
+limit of their compact reconstruction fidelity under cognitive feature budgets.
 
 \subsection{Top-$K$ versus Random-$K$}
 The random-$K$ baseline gives CCC an internal sanity check. In most tested
@@ -478,11 +509,23 @@ full MSE while still losing fidelity after truncation. Third, it provides a
 benchmark protocol comparing top-$K$ CCC against random-$K$ baselines, sufficiency,
 comprehensiveness, and full MSE across datasets, models, and explainers. The
 benchmark shows that SHAP achieves the lowest CCC scores in the tested configurations,
-MAPLE is a useful intermediate comparison, and LIME is less reliable in the tested
-configurations. More importantly, the results show that full-explanation fidelity and
-compact-explanation fidelity are distinct evaluation targets. This makes CCC
-particularly relevant for practical XAI settings where explanations must be both
-faithful to the model and short enough to be inspected by a human.
+MAPLE is a useful intermediate comparison, and LIME exhibits non-monotonic behavior
+due to lacking the local accuracy property. More importantly, the results show that
+full-explanation fidelity and compact-explanation fidelity are distinct evaluation
+targets. This makes CCC particularly relevant for practical XAI settings where
+explanations must be both faithful to the model and short enough to be inspected
+by a human.
+
+CCC provides a ``different lens'' for explainer selection when compared to the other
+metrics. For instance, on Adult/XGBoost with $K=8$, SHAP achieves CCC of 0.000135
+while MAPLE achieves 0.0179: CCC would clearly favor SHAP. However, sufficiency
+offers a different perspective: MAPLE's sufficiency of 0.0334 is lower than SHAP's
+0.0624, indicating that MAPLE's top-$8$ features better preserve prediction under
+the masking baseline. These different rankings suggest that real-world explainer
+selection should consider multiple metrics jointly, and that CCC's focus on compact
+faithfulness favors explainers like SHAP that concentrate predictive evidence in
+few features. In scenarios where explaining $K$ concepts to humans is paramount,
+CCC helps identify methods that maintain fidelity under tight cognitive budgets.
 
 The most immediate extension is to broaden the benchmark without changing the
 metric definition. Additional tabular datasets would test whether CCC remains
