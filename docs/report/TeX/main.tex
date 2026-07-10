@@ -218,8 +218,7 @@ forest feature extraction, 100 estimators, a validation size of 100, a training
 subsample of 2000 when available, and regularization 0.001. The benchmark
 evaluates $K=5,6,7,8,9$ over seeds 42, 123, and 2026, focusing on Miller's cognitive limit range.
 
-The results discussed below come from the 20260629 archive file under
-\texttt{results/archive/}, which contains aggregate tables grouped by dataset,
+The results discussed below come from \texttt{results/latest.md}, which contains aggregate tables grouped by dataset,
 model, explainer, and $K$. The run reports six dataset--seed executions and
 includes model accuracy plus CCC, full MSE, sufficiency, comprehensiveness, and
 random-$K$ MSE.
@@ -253,7 +252,7 @@ reduction figures for presentation.
     Dataset & Model & Accuracy \\
     \midrule
     Adult & XGBoost & 0.874 \\
-    Adult & Neural network & 0.821 \\
+    Adult & Neural network & 0.823 \\
     Breast Cancer & XGBoost & 0.968 \\
     Breast Cancer & Neural network & 0.977 \\
     \bottomrule
@@ -262,7 +261,7 @@ reduction figures for presentation.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.95\textwidth]{../../../results/figures/presentation/ccc_mse_by_k.png}
+  \includegraphics[width=0.95\textwidth]{../../../results/figures/latest/ccc_mse_by_k.png}
   \caption{CCC as the feature budget increases. The figure was generated from
   the project visualization utilities. Lower curves indicate more faithful
   compact explanations.}
@@ -273,24 +272,24 @@ reduction figures for presentation.
 \begin{table*}[t]
   \centering
   \caption{Representative aggregate CCC values from
-  \texttt{results\_20260629\_105230.md}. Lower is better.}
+  \texttt{results/latest.md}. Lower is better.}
   \label{tab:ccc-results}
   \begin{tabular}{llrrrrr}
     \toprule
     Dataset/model & Explainer & $K=5$ & $K=6$ & $K=7$ & $K=8$ & $K=9$ \\
     \midrule
-    Adult/NN & SHAP   & 0.0074 & 0.0040 & 0.0020 & 0.0008 & 0.0002 \\
-    Adult/NN & MAPLE  & 0.0590 & 0.0590 & 0.0590 & 0.0590 & 0.0590 \\
-    Adult/NN & LIME   & 3.3630 & 3.2186 & 3.0533 & 2.8499 & 2.6331 \\
-    Adult/XGB & SHAP  & 0.0014 & 0.0007 & 0.0003 & 0.0001 & 0.0000 \\
-    Adult/XGB & MAPLE & 0.0180 & 0.0179 & 0.0179 & 0.0179 & 0.0179 \\
-    Adult/XGB & LIME  & 0.1163 & 0.1134 & 0.1117 & 0.1104 & 0.1096 \\
-    Breast/NN & SHAP   & 0.0319 & 0.0185 & 0.0094 & 0.0038 & 0.0009 \\
-    Breast/NN & MAPLE  & 0.0847 & 0.0663 & 0.0561 & 0.0461 & 0.0364 \\
-    Breast/NN & LIME   & 0.1223 & 0.1037 & 0.0995 & 0.1129 & 0.1313 \\
+    Adult/NN & SHAP   & 0.007182 & 0.003973 & 0.001968 & 0.000790 & 0.000186 \\
+    Adult/NN & MAPLE  & 0.0574 & 0.0574 & 0.0574 & 0.0574 & 0.0574 \\
+    Adult/NN & LIME   & 3.8262 & 3.6462 & 3.4261 & 3.1941 & 2.9571 \\
+    Adult/XGB & SHAP  & 0.001387 & 0.000699 & 0.000338 & 0.000135 & 0.000032 \\
+    Adult/XGB & MAPLE & 0.0181 & 0.0180 & 0.0179 & 0.0179 & 0.0179 \\
+    Adult/XGB & LIME  & 0.1168 & 0.1139 & 0.1119 & 0.1104 & 0.1095 \\
+    Breast/NN & SHAP   & 0.0318 & 0.0183 & 0.0094 & 0.0037 & 0.0009 \\
+    Breast/NN & MAPLE  & 0.0847 & 0.0670 & 0.0565 & 0.0462 & 0.0365 \\
+    Breast/NN & LIME   & 0.1269 & 0.1111 & 0.1084 & 0.1220 & 0.1368 \\
     Breast/XGB & SHAP  & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
     Breast/XGB & MAPLE & 0.0755 & 0.0556 & 0.0555 & 0.0405 & 0.0341 \\
-    Breast/XGB & LIME  & 0.0396 & 0.0401 & 0.0408 & 0.0468 & 0.0530 \\
+    Breast/XGB & LIME  & 0.0398 & 0.0370 & 0.0412 & 0.0470 & 0.0521 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -318,7 +317,7 @@ signal in a small subset of features, even if the full local approximation is
 not terrible.
 
 Third, LIME is unstable across settings. On Adult/NN, LIME CCC remains above
-2.6 even at $K=9$, several orders of magnitude worse than SHAP. This indicates
+3.0 even at $K=9$ (value 2.957), several orders of magnitude worse than SHAP. This indicates
 that the surrogate model coefficients do not reconstruct the black-box probability
 well in the additive form $g_K(x)=w_0+\sum_{i\in S_K}\phi_i$. On Breast Cancer/XGBoost,
 LIME is closer to SHAP for very small budgets but does not improve monotonically
@@ -330,8 +329,8 @@ necessarily make the truncated reconstruction closer to the black-box probabilit
 The random-$K$ baseline gives CCC an internal sanity check. In most tested
 settings, the explainer-selected top-$K$ features outperform random subsets of
 the same explanation weights. For example, Adult/XGBoost SHAP at $K=9$ has CCC
-around $3.1 \times 10^{-5}$, while random-$K$ MSE is about 0.086. Breast
-Cancer/XGBoost SHAP at $K=9$ has CCC around 0.00027, while random-$K$ is about
+around $3.2 \times 10^{-5}$, while random-$K$ MSE is about 0.086. Breast
+Cancer/XGBoost SHAP at $K=9$ has CCC around 0.00028, while random-$K$ is about
 0.113. This confirms that the top-ranked features preserve meaningful
 prediction signal. When the gap is smaller, as for some MAPLE configurations,
 the feature ranking is less informative.
@@ -413,9 +412,9 @@ full-explanation fidelity does not guarantee faithful compact explanations.
     \toprule
     Explainer & CCC & Sufficiency & Comprehensiveness \\
     \midrule
-    SHAP  & 0.000134 & 0.0628 & 0.2278 \\
-    MAPLE & 0.017888 & \textbf{0.0333} & 0.2299 \\
-    LIME  & 0.110422 & 0.1018 & 0.2052 \\
+    SHAP  & 0.000135 & 0.0624 & 0.2278 \\
+    MAPLE & 0.0179 & \textbf{0.0334} & 0.2299 \\
+    LIME  & 0.1104 & 0.1015 & 0.2054 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -429,9 +428,9 @@ full-explanation fidelity does not guarantee faithful compact explanations.
     \toprule
     Explainer & CCC & Random-$K$ MSE \\
     \midrule
-    SHAP  & 0.000031 & 0.0863 \\
-    MAPLE & 0.017863 & 0.0385 \\
-    LIME  & 0.109552 & 0.5250 \\
+    SHAP  & 0.000032 & 0.0863 \\
+    MAPLE & 0.0179 & 0.0385 \\
+    LIME  & 0.1095 & 0.5266 \\
     \bottomrule
   \end{tabular}
 \end{table}

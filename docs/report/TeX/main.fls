@@ -1,8 +1,8 @@
-PWD D:/Code/github/itsPinguiz/EQE/docs/report/TeX
+PWD c:/Users/ungol/OneDrive/Desktop/Ing-Inf-PoliTo/secondo anno/secondo semestre/Explainable and trustworthy AI/project/EQE/docs/report/TeX
 INPUT c:/texlive/2026/texmf.cnf
 INPUT c:/texlive/2026/texmf-dist/web2c/texmf.cnf
 INPUT c:/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT main.tex
+INPUT c:/Users/ungol/OneDrive/Desktop/Ing-Inf-PoliTo/secondo anno/secondo semestre/Explainable and trustworthy AI/project/EQE/docs/report/TeX/main.tex
 OUTPUT main.log
 INPUT ./acmart.cls
 INPUT acmart.cls
@@ -326,6 +326,9 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsyc.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexa.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexa.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTI-tlf-t1.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/libertine/LinBiolinumTB-tlf-t1.vf
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinBiolinumTB-tlf-t1--base.tfm
 INPUT c:/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map
@@ -353,6 +356,9 @@ INPUT c:/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_oexx6f.enc
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/libertine/LinLibertineTI-tlf-t1.vf
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTI-tlf-t1--base.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc
+INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/libertine/LinLibertineTZ-tlf-ot1.vf
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1--base.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_fygcup.enc
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/newtx/nxlmia.vf
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/LibertineMathRM.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/txmiaSTbb.tfm
@@ -378,6 +384,8 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsy7.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsy5.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexx.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexx.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
@@ -391,11 +399,6 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsyc.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexa.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexa.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/inconsolata/t1-zi4r-4.tfm
-INPUT ../../../results/figures/presentation/ccc_mse_by_k.png
-INPUT ../../../results/figures/presentation/ccc_mse_by_k.png
-INPUT ../../../results/figures/presentation/ccc_mse_by_k.png
-INPUT ../../../results/figures/presentation/ccc_mse_by_k.png
-INPUT ../../../results/figures/presentation/ccc_mse_by_k.png
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinBiolinumT-tlf-t1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinBiolinumT-tlf-t1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/libertine/LinBiolinumT-tlf-t1.vf
@@ -420,6 +423,11 @@ INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/newtx/nxlmi7.vf
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/LibertineMathMI7.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/NewTXMI7.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/stxscr.tfm
+INPUT ../../../results/figures/latest/ccc_mse_by_k.png
+INPUT ../../../results/figures/latest/ccc_mse_by_k.png
+INPUT ../../../results/figures/latest/ccc_mse_by_k.png
+INPUT ../../../results/figures/latest/ccc_mse_by_k.png
+INPUT ../../../results/figures/latest/ccc_mse_by_k.png
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineT-tlf-ot1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineT-tlf-ot1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/nxlmi.tfm
@@ -428,6 +436,8 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsy.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsy5.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexx.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexx.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
@@ -440,10 +450,18 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsyc.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxsyc.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexa.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/ntxexa.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineTZ-tlf-ot1.tfm
+INPUT c:/texlive/2026/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd
+INPUT c:/texlive/2026/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd
+INPUT c:/texlive/2026/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineT-tlf-ts1.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/newtx/nxlmi.vf
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/LibertineMathMI.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/NewTXMI.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/stxscr.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/libertine/LinLibertineT-tlf-ts1.vf
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineT-tlf-ts1--base.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_naooyc.enc
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/libertine/LinLibertineT-tlf-t1.vf
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineT-tlf-t1--base.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/newtx/nxlmi7.vf
@@ -453,13 +471,6 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/stxscr.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/newtx/ntxsy7.vf
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/txsys.tfm
 INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/newtx/txex-bar.tfm
-INPUT c:/texlive/2026/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd
-INPUT c:/texlive/2026/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd
-INPUT c:/texlive/2026/texmf-dist/tex/latex/libertine/TS1LinuxLibertineT-TLF.fd
-INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineT-tlf-ts1.tfm
-INPUT c:/texlive/2026/texmf-dist/fonts/vf/public/libertine/LinLibertineT-tlf-ts1.vf
-INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/libertine/LinLibertineT-tlf-ts1--base.tfm
-INPUT c:/texlive/2026/texmf-dist/fonts/enc/dvips/libertine/lbtn_naooyc.enc
 INPUT ./main.bbl
 INPUT ./main.bbl
 INPUT main.bbl
@@ -485,6 +496,7 @@ INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/libertine/LinBiolinumTB.pfb
 INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/libertine/LinLibertineT.pfb
 INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/libertine/LinLibertineTB.pfb
 INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/libertine/LinLibertineTI.pfb
+INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/libertine/LinLibertineTZ.pfb
 INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/newtx/txexs.pfb
 INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/newtx/txmiaX.pfb
 INPUT c:/texlive/2026/texmf-dist/fonts/type1/public/newtx/txsys.pfb
