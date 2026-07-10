@@ -23,6 +23,9 @@ from core.model import BlackBoxModel
 from core.third_party.MAPLE import MAPLE
 from core.utility.progress import progress_bar, tqdm_joblib
 
+MODEL_EXPLANATION_BACKEND = "threading"
+
+
 class BaseExplainer(ABC):
     """
     Abstract base class for all explainers.
@@ -227,7 +230,9 @@ class LimeTabularExplainerWrapper(BaseExplainer):
         weights = np.zeros((n_samples, n_features))
         intercepts = np.zeros(n_samples)
         
-        # Use joblib for parallel processing if n_jobs > 1
+        # Use threads so fitted model objects stay in-process. Some native
+        # model backends, notably XGBoost on Windows, are fragile to process
+        # pickling after fitting.
         if self.n_jobs > 1:
             from joblib import Parallel, delayed
             progress = progress_bar(
@@ -237,7 +242,7 @@ class LimeTabularExplainerWrapper(BaseExplainer):
                 unit="sample",
             )
             with tqdm_joblib(progress):
-                results = Parallel(n_jobs=self.n_jobs, backend="loky")(
+                results = Parallel(n_jobs=self.n_jobs, backend=MODEL_EXPLANATION_BACKEND)(
                     delayed(self._explain_single)(i, X[i], n_features)
                     for i in range(n_samples)
                 )
@@ -362,7 +367,9 @@ class MapleExplainer(BaseExplainer):
         weights = np.zeros((n_samples, n_features))
         intercepts = np.zeros(n_samples)
 
-        # Use joblib for parallel processing if n_jobs > 1
+        # Use threads so fitted model objects stay in-process. Some native
+        # model backends, notably XGBoost on Windows, are fragile to process
+        # pickling after fitting.
         if self.n_jobs > 1:
             from joblib import Parallel, delayed
             progress = progress_bar(
@@ -372,7 +379,7 @@ class MapleExplainer(BaseExplainer):
                 unit="sample",
             )
             with tqdm_joblib(progress):
-                results = Parallel(n_jobs=self.n_jobs, backend="loky")(
+                results = Parallel(n_jobs=self.n_jobs, backend=MODEL_EXPLANATION_BACKEND)(
                     delayed(self._explain_single)(i, X[i])
                     for i in range(n_samples)
                 )

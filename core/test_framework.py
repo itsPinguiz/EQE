@@ -33,6 +33,7 @@ EXPLAINER_REGISTRY = {
 }
 
 HIGHER_IS_BETTER_METRICS = {"comprehensiveness_abs_drop"}
+MODEL_EXPLANATION_BACKEND = "threading"
 
 
 def _apply_log_level(verbose: bool) -> None:
@@ -318,7 +319,8 @@ class ExperimentOrchestrator:
         ]
         self._emit_progress("sample_total", amount=len(tasks) * X_explain.shape[0])
 
-        # Parallelize at the outer level (model, explainer pairs)
+        # Parallelize model/explainer pairs without pickling fitted models.
+        # XGBoost boosters can crash while unpickling in loky workers on Windows.
         n_jobs = self.n_jobs or -1  # -1 = all cores
         progress = progress_bar(
             total=len(tasks),
@@ -327,7 +329,7 @@ class ExperimentOrchestrator:
             unit="pair",
         )
         with tqdm_joblib(progress):
-            results = Parallel(n_jobs=n_jobs, backend="loky")(
+            results = Parallel(n_jobs=n_jobs, backend=MODEL_EXPLANATION_BACKEND)(
                 delayed(self._explain_single_pair)(model_name, model, explainer_name, X_explain)
                 for model_name, model, explainer_name, X_explain in tasks
             )
