@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1783758870.39169 "main.tex" "main.pdf" "main" 1783758874.76831 0
+["pdflatex"] 1783760236.81741 "main.tex" "main.pdf" "main" 1783760241.17638 0
   "../../results/figures/latest/ccc_mse_by_k.png" 1783652474 216569 53ba469b16808e17ca5828032dc0ec1e ""
   "../../results/figures/latest/top_k_vs_random_k_k9.png" 1783652475 64691 dd26f8f119480378b206c265cc60b730 ""
   "assets/Logo_RGB_negative.png" 1783758392 440913 5f70aabed77721931db2eb658d408867 ""
@@ -248,11 +248,11 @@
   "c:/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1783081029 5619402 ad1310ccf7f36101ef3e8f014a173c46 ""
   "c:/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1783081277 3656530 0d52e5adb3d49b2a66ea5c030622e477 ""
   "c:/texlive/2026/texmf.cnf" 1783080999 713 e69b156964470283e0530f5060668171 ""
-  "main.aux" 1783758874 4487 e5139c91f2ca3171c842fc0469278c63 "pdflatex"
-  "main.nav" 1783758874 2904 57843fe24ba08f41f744781157dd5fdb "pdflatex"
-  "main.out" 1783758874 327 fd60e0ba4b5f9f9d655d30a04861f9e9 "pdflatex"
-  "main.tex" 1783758866 11858 d7a598cd4c5b34dc821aa7ee5876eec2 ""
-  "main.toc" 1783758874 177 d285a7d9963b8a47e2445bb1768b3102 "pdflatex"
+  "main.aux" 1783760240 4487 e5139c91f2ca3171c842fc0469278c63 "pdflatex"
+  "main.nav" 1783760240 2904 57843fe24ba08f41f744781157dd5fdb "pdflatex"
+  "main.out" 1783760240 327 fd60e0ba4b5f9f9d655d30a04861f9e9 "pdflatex"
+  "main.tex" 1783760229 12115 78e7d26a59bdf52ea7a152171b7400ad ""
+  "main.toc" 1783760240 177 d285a7d9963b8a47e2445bb1768b3102 "pdflatex"
   "sintefcolor.sty" 1783758390 988 0d0eeaf91f7e5cb659a99ca8306bec89 ""
   (generated)
   "main.aux"

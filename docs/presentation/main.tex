@@ -190,7 +190,8 @@ Breast Cancer & Neural network & 0.977 \\
 \begin{frame}{CCC Curves}
 \framesubtitle{Lower curves mean more faithful compact explanations}
 \centering
-\includegraphics[width=0.94\textwidth,height=0.72\textheight,keepaspectratio]{../../results/figures/latest/ccc_mse_by_k.png}
+\vspace{-0.8em}
+\includegraphics[width=1.08\textwidth,height=0.88\textheight,keepaspectratio]{../../results/figures/latest/ccc_mse_by_k.png}
 \end{frame}
 
 \begin{frame}{Representative CCC Values}
@@ -341,7 +342,6 @@ Conciseness & Measures explanation size alone; CCC combines compactness with pre
 \begin{block}{Extensions}
 \begin{itemize}
   \item Add datasets and black-box models.
-  \item Use normalized CCC for cross-dataset comparison.
   \item Choose the smallest $K$ below an error threshold.
   \item Integrate CCC into explanation dashboards.
 \end{itemize}
@@ -360,6 +360,20 @@ Conciseness & Measures explanation size alone; CCC combines compactness with pre
 \end{itemize}
 \end{frame}
 
-\backmatter
+\begingroup
+\themecolor{main}
+\begin{frame}[c]
+  \centering
+  \begin{minipage}{\textwidth}
+    \usebeamercolor[fg]{normal text}
+    \centering
+    \Huge \inserttitle
+    \vspace{5mm}
+
+    \Large \textsl{Thank you for listening!}\\[2mm]
+    \Large \textsl{Any questions?}
+  \end{minipage}
+\end{frame}
+\endgroup
 
 \end{document}

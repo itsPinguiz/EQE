@@ -222,7 +222,7 @@ There are also limitations.
 
 CCC is designed for additive explanations, so it does not directly apply to rule lists, counterfactual explanations, or prototypes.
 
-It also depends on the scale and calibration of predicted probabilities. For cross-dataset comparisons, normalized CCC can help.
+It also depends on the scale and calibration of predicted probabilities, so raw CCC values should be interpreted carefully when moving across datasets.
 
 Another limitation is that a fixed K is only a proxy for cognitive complexity. For example, one-hot encoded features may not correspond to human-level concepts.
 
