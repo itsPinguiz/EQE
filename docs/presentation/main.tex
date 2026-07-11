@@ -1,0 +1,365 @@
+\documentclass{beamer}
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usetheme{sintef}
+
+\usefonttheme[onlymath]{serif}
+\titlebackground*{assets/background}
+
+\newcommand{\ccc}{\mathrm{CCC}}
+\newcommand{\topk}{top-$K$}
+\newcommand{\smallgap}{\vspace{0.25em}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{Evaluating the Quality of Explanations under a Cognitive Feature Budget}
+\subtitle{Complexity-Calibrated Local Concordance for compact local explanations}
+\course{Explainable and Trustworthy AI}
+\author{Stefano Zizzi \and Michelangelo Ungolo \and Miriana Sette}
+\IDnumber{}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Problem}
+\framesubtitle{From full fidelity to displayed fidelity}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+  \item Local explainers often produce one contribution per feature.
+  \item Standard fidelity can evaluate the complete additive reconstruction.
+  \item Real interfaces usually display only a small number of features.
+  \item A faithful full explanation can become misleading after truncation.
+\end{itemize}
+\end{column}
+\begin{column}{0.39\textwidth}
+\begin{colorblock}{maincolor}{Core question}
+\centering
+\small
+How much model fidelity is preserved when only the \topk{} contributions are shown?
+\end{colorblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{Metric}
+
+\begin{frame}{Contribution}
+\framesubtitle{Compact faithfulness under a cognitive budget}
+\begin{itemize}
+  \item We introduce Complexity-Calibrated Local Concordance.
+  \item CCC measures reconstruction error after enforcing a feature budget
+        $K \in \{5,6,7,8,9\}$.
+  \item Lower CCC means the displayed explanation better reconstructs the
+        black-box probability.
+  \item The metric complements full MSE, sufficiency, comprehensiveness, and
+        random-$K$ baselines.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{CCC Definition}
+\framesubtitle{Budget-aware additive reconstruction}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.54\textwidth}
+\begin{align*}
+g_K(x) &= w_0 + \sum_{i \in S_K(x)} \phi_i(x) \\
+\ccc_K &=
+\frac{1}{N}\sum_{j=1}^{N}
+\left(f(x^{(j)}) - g_K(x^{(j)})\right)^2
+\end{align*}
+\end{column}
+\begin{column}{0.42\textwidth}
+\begin{itemize}
+  \item $f(x)$ is the black-box positive-class probability.
+  \item $w_0$ is the explainer intercept.
+  \item $\phi_i(x)$ is the additive feature contribution.
+  \item $S_K(x)$ keeps the $K$ largest absolute contributions.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Common Explainer Format}
+\framesubtitle{Normalizing LIME, SHAP, and MAPLE}
+\begin{table}
+\centering
+\small
+\begin{tabularx}{\textwidth}{lY}
+\toprule
+Explainer & Additive contribution used by CCC \\
+\midrule
+SHAP & Shapley values are already additive contributions. \\
+LIME & Local coefficients are multiplied by the interpretable representation:
+$\phi_i = \beta_i z_i(x)$. \\
+MAPLE & Local coefficients are multiplied by the feature value:
+$\phi_i = \beta_i x_i$. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\smallgap
+\begin{colorblock}[darkgray]{sintefgrey}{Assumption}
+\small
+All explainers are evaluated through the same form:
+$g(x)=w_0+\sum_i \phi_i(x)$.
+\end{colorblock}
+\end{frame}
+
+\section{Benchmark}
+
+\begin{frame}{Experimental Setup}
+\framesubtitle{Datasets, models, explainers, and budgets}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Datasets}
+\begin{itemize}
+  \item UCI Adult
+  \item UCI Breast Cancer Wisconsin Diagnostic
+\end{itemize}
+\end{block}
+\begin{block}{Classifiers}
+\begin{itemize}
+  \item XGBoost
+  \item Neural network
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Explainers}
+\begin{itemize}
+  \item LIME
+  \item SHAP KernelExplainer
+  \item MAPLE
+\end{itemize}
+\end{block}
+\begin{block}{Evaluation}
+\begin{itemize}
+  \item $K=5,6,7,8,9$
+  \item Seeds 42, 123, 2026
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Benchmark Pipeline}
+\framesubtitle{Reproducible local explanation evaluation}
+\begin{enumerate}
+  \item Load and scale the dataset.
+  \item Train each configured black-box classifier.
+  \item Generate local explanations for each model and explainer pair.
+  \item Convert explanations into additive contributions.
+  \item Compute CCC, full MSE, random-$K$, sufficiency, and comprehensiveness.
+\end{enumerate}
+\smallgap
+\begin{colorblock}{maincolor}{Implementation}
+\small
+The orchestration is implemented in \texttt{core/test\_framework.py}; metrics are implemented in \texttt{core/metrics.py}.
+\end{colorblock}
+\end{frame}
+
+\begin{frame}{Model Accuracy}
+\framesubtitle{Accuracy alone does not select the best explainer}
+\begin{table}
+\centering
+\begin{tabular}{llr}
+\toprule
+Dataset & Model & Mean accuracy \\
+\midrule
+Adult & XGBoost & 0.874 \\
+Adult & Neural network & 0.823 \\
+Breast Cancer & XGBoost & 0.968 \\
+Breast Cancer & Neural network & 0.977 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\smallgap
+\begin{itemize}
+  \item High model accuracy does not imply compact explanations.
+  \item CCC measures the displayed explanation, not the classifier alone.
+\end{itemize}
+\end{frame}
+
+\section{Results}
+
+\begin{frame}{CCC Curves}
+\framesubtitle{Lower curves mean more faithful compact explanations}
+\centering
+\includegraphics[width=0.94\textwidth,height=0.72\textheight,keepaspectratio]{../../results/figures/latest/ccc_mse_by_k.png}
+\end{frame}
+
+\begin{frame}{Representative CCC Values}
+\framesubtitle{Lower is better}
+\centering
+\scriptsize
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{llrrrrr}
+\toprule
+Dataset/model & Explainer & $K=5$ & $K=6$ & $K=7$ & $K=8$ & $K=9$ \\
+\midrule
+Adult/NN & SHAP   & 0.0072 & 0.0040 & 0.0020 & 0.0008 & 0.0002 \\
+Adult/NN & MAPLE  & 0.0574 & 0.0574 & 0.0574 & 0.0574 & 0.0574 \\
+Adult/NN & LIME   & 3.8262 & 3.6462 & 3.4261 & 3.1941 & 2.9571 \\
+Adult/XGB & SHAP  & 0.0014 & 0.0007 & 0.0003 & 0.0001 & 0.0000 \\
+Adult/XGB & MAPLE & 0.0181 & 0.0180 & 0.0179 & 0.0179 & 0.0179 \\
+Adult/XGB & LIME  & 0.1168 & 0.1139 & 0.1119 & 0.1104 & 0.1095 \\
+Breast/NN & SHAP  & 0.0318 & 0.0183 & 0.0094 & 0.0037 & 0.0009 \\
+Breast/NN & MAPLE & 0.0847 & 0.0670 & 0.0565 & 0.0462 & 0.0365 \\
+Breast/NN & LIME  & 0.1269 & 0.1111 & 0.1084 & 0.1220 & 0.1368 \\
+Breast/XGB & SHAP & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
+Breast/XGB & MAPLE & 0.0755 & 0.0556 & 0.0555 & 0.0405 & 0.0341 \\
+Breast/XGB & LIME & 0.0398 & 0.0370 & 0.0412 & 0.0470 & 0.0521 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{frame}
+
+\begin{frame}{Explainer Patterns}
+\framesubtitle{What the CCC curves reveal}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.31\textwidth}
+\begin{block}{SHAP}
+\small
+Lowest CCC overall. Error decreases quickly as $K$ grows, but small budgets can still lose fidelity.
+\end{block}
+\end{column}
+\begin{column}{0.31\textwidth}
+\begin{block}{MAPLE}
+\small
+Intermediate behavior. Some settings improve with $K$; Adult is almost flat, suggesting weak top-$K$ concentration.
+\end{block}
+\end{column}
+\begin{column}{0.31\textwidth}
+\begin{block}{LIME}
+\small
+Most unstable. On Breast Cancer, CCC is non-monotonic because local surrogate weights do not guarantee additive accuracy.
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Why LIME Can Be Non-Monotonic}
+\framesubtitle{Adding features can increase squared reconstruction error}
+\begin{itemize}
+  \item LIME refits a local sparse surrogate and does not enforce local accuracy.
+  \item Feature selection is not guaranteed to be nested across values of $K$.
+  \item Breast Cancer features are highly correlated, so added terms can change
+        the reconstruction direction.
+  \item Ranking by absolute contribution can add terms whose signs increase
+        $|f(x)-g_K(x)|$.
+\end{itemize}
+\smallgap
+\begin{colorblock}{sintefyellow}{Example}
+\small
+Breast/NN LIME improves from $K=5$ to $K=7$ but worsens at $K=8$ and $K=9$:
+0.1269, 0.1111, 0.1084, 0.1220, 0.1368.
+\end{colorblock}
+\end{frame}
+
+\begin{frame}{CCC Versus Full MSE}
+\framesubtitle{Full fidelity is not compact fidelity}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{table}
+\centering
+\scriptsize
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{lrrrrr}
+\toprule
+$K$ & 5 & 6 & 7 & 8 & 9 \\
+\midrule
+full MSE & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 \\
+CCC & 0.0160 & 0.0082 & 0.0037 & 0.0014 & 0.0003 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+\end{column}
+\begin{column}{0.47\textwidth}
+\begin{itemize}
+  \item Example: SHAP on Breast Cancer/XGBoost.
+  \item Full additive reconstruction is exact.
+  \item The displayed \topk{} explanation still has measurable error.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Top-$K$ Versus Random-$K$}
+\framesubtitle{The ranking should beat arbitrary feature subsets}
+\centering
+\includegraphics[width=0.9\textwidth,height=0.67\textheight,keepaspectratio]{../../results/figures/latest/top_k_vs_random_k_k9.png}
+\end{frame}
+
+\begin{frame}{Metric Comparison}
+\framesubtitle{CCC answers a different evaluation question}
+\scriptsize
+\begin{tabularx}{\textwidth}{lY}
+\toprule
+Metric & Relation to CCC \\
+\midrule
+Full MSE & Evaluates all-feature reconstruction; CCC evaluates after top-$K$ truncation. \\
+Sufficiency & Keeps selected input features under a masking baseline; CCC evaluates additive concordance directly. \\
+Comprehensiveness & Measures prediction change after removing selected features; CCC asks whether displayed additive terms reconstruct $f(x)$. \\
+Infidelity or sensitivity & Measures stability under input perturbations; CCC adds an explicit cognitive feature budget. \\
+Conciseness & Measures explanation size alone; CCC combines compactness with predictive faithfulness. \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+\section{Takeaways}
+
+\begin{frame}{What CCC Adds}
+\framesubtitle{A practical lens for human-sized explanations}
+\begin{itemize}
+  \item CCC separates model accuracy, full explanation fidelity, and compact explanation fidelity.
+  \item It exposes how quickly the top-ranked features recover the model prediction.
+  \item It can be summarized as a curve, an area under the CCC curve, or a minimum faithful $K$.
+  \item It is useful as an offline benchmark and as a runtime warning for deployed explanation tools.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Limitations and Extensions}
+\framesubtitle{Where the metric should be pushed next}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Limitations}
+\begin{itemize}
+  \item Designed for additive explanations.
+  \item Depends on probability scale and calibration.
+  \item Fixed $K$ is only a proxy for cognitive complexity.
+  \item Current benchmark covers two datasets and two model families.
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Extensions}
+\begin{itemize}
+  \item Add datasets and black-box models.
+  \item Use normalized CCC for cross-dataset comparison.
+  \item Choose the smallest $K$ below an error threshold.
+  \item Integrate CCC into explanation dashboards.
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Conclusion}
+\framesubtitle{Compact faithfulness is a distinct target}
+\begin{itemize}
+  \item Full explanation fidelity does not guarantee faithful displayed explanations.
+  \item CCC evaluates the fidelity of the explanation that a user actually sees.
+  \item In this benchmark, SHAP gives the strongest compact reconstructions, MAPLE is intermediate, and LIME is more sensitive to $K$ and local instability.
+  \item Explainer selection should combine CCC with perturbation metrics when practical decisions depend on both reconstruction and input-masking behavior.
+\end{itemize}
+\end{frame}
+
+\backmatter
+
+\end{document}

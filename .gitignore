@@ -11,6 +11,7 @@ __pycache__/
 .bbl
 .aux
 .fdb_latexmk
+tmp/
 
 
 # ...But force Git to track the hidden .gitkeep files
