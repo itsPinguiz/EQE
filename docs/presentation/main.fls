@@ -302,6 +302,10 @@ INPUT c:/texlive/2026/texmf-dist/tex/latex/ifoddpage/ifoddpage.sty
 INPUT c:/texlive/2026/texmf-dist/tex/latex/varwidth/varwidth.sty
 INPUT c:/texlive/2026/texmf-dist/tex/latex/varwidth/varwidth.sty
 INPUT c:/texlive/2026/texmf-dist/tex/latex/varwidth/varwidth.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/pgf/utilities/pgfpages.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/pgf/utilities/pgfpages.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/tools/calc.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/tools/calc.sty
 INPUT ./beamerthemesintef.sty
 INPUT beamerthemesintef.sty
 INPUT c:/texlive/2026/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty

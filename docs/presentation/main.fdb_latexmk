@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1783760236.81741 "main.tex" "main.pdf" "main" 1783760241.17638 0
+["pdflatex"] 1783760919.5457 "main.tex" "main.pdf" "main" 1783760923.89618 0
   "../../results/figures/latest/ccc_mse_by_k.png" 1783652474 216569 53ba469b16808e17ca5828032dc0ec1e ""
   "../../results/figures/latest/top_k_vs_random_k_k9.png" 1783652475 64691 dd26f8f119480378b206c265cc60b730 ""
   "assets/Logo_RGB_negative.png" 1783758392 440913 5f70aabed77721931db2eb658d408867 ""
@@ -225,12 +225,14 @@
   "c:/texlive/2026/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty" 1783078830 443 8c872229db56122037e86bcda49e14f3 ""
   "c:/texlive/2026/texmf-dist/tex/latex/pgf/utilities/pgffor.sty" 1783078830 348 ee405e64380c11319f0e249fed57e6c5 ""
   "c:/texlive/2026/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty" 1783078830 274 5ae372b7df79135d240456a1c6f2cf9a ""
+  "c:/texlive/2026/texmf-dist/tex/latex/pgf/utilities/pgfpages.sty" 1783078830 36299 1cc9347091c2fb861270e66da42a0a3e ""
   "c:/texlive/2026/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty" 1783078830 325 f9f16d12354225b7dd52a3321f085955 ""
   "c:/texlive/2026/texmf-dist/tex/latex/pgf/utilities/xxcolor.sty" 1783078830 2232 b9a67bccba736ed334b4b1a860a85c6f ""
   "c:/texlive/2026/texmf-dist/tex/latex/refcount/refcount.sty" 1783079358 9878 9e94e8fa600d95f9c7731bb21dfb67a4 ""
   "c:/texlive/2026/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1783079384 9684 a33a14b82ce60d6e77cb9be689d79ee6 ""
   "c:/texlive/2026/texmf-dist/tex/latex/sansmathaccent/sansmathaccent.sty" 1783079489 4282 5d27280ace1239baaa4a225df16125ff ""
   "c:/texlive/2026/texmf-dist/tex/latex/tools/array.sty" 1783080357 17611 1fdd60d12fed6aebd140f4d060571642 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/tools/calc.sty" 1783080357 10374 6789dee941e798d7dec57bf0589f67f6 ""
   "c:/texlive/2026/texmf-dist/tex/latex/tools/enumerate.sty" 1783080357 3468 0edeeaa8c96756416f2b75803d77179e ""
   "c:/texlive/2026/texmf-dist/tex/latex/tools/tabularx.sty" 1783080357 7243 98a9e0737a56460d15d6b41be1ecc3b8 ""
   "c:/texlive/2026/texmf-dist/tex/latex/translator/translator-basic-dictionary-English.dict" 1783080403 3535 7dc96051305a7e943219126c49c44cd6 ""
@@ -248,11 +250,11 @@
   "c:/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1783081029 5619402 ad1310ccf7f36101ef3e8f014a173c46 ""
   "c:/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1783081277 3656530 0d52e5adb3d49b2a66ea5c030622e477 ""
   "c:/texlive/2026/texmf.cnf" 1783080999 713 e69b156964470283e0530f5060668171 ""
-  "main.aux" 1783760240 4487 e5139c91f2ca3171c842fc0469278c63 "pdflatex"
-  "main.nav" 1783760240 2904 57843fe24ba08f41f744781157dd5fdb "pdflatex"
-  "main.out" 1783760240 327 fd60e0ba4b5f9f9d655d30a04861f9e9 "pdflatex"
-  "main.tex" 1783760229 12115 78e7d26a59bdf52ea7a152171b7400ad ""
-  "main.toc" 1783760240 177 d285a7d9963b8a47e2445bb1768b3102 "pdflatex"
+  "main.aux" 1783760923 4487 e5139c91f2ca3171c842fc0469278c63 "pdflatex"
+  "main.nav" 1783760923 2904 57843fe24ba08f41f744781157dd5fdb "pdflatex"
+  "main.out" 1783760923 327 fd60e0ba4b5f9f9d655d30a04861f9e9 "pdflatex"
+  "main.tex" 1783760909 23599 b4f6e95378d090cdc1ce149d5a95be6b ""
+  "main.toc" 1783760923 177 d285a7d9963b8a47e2445bb1768b3102 "pdflatex"
   "sintefcolor.sty" 1783758390 988 0d0eeaf91f7e5cb659a99ca8306bec89 ""
   (generated)
   "main.aux"

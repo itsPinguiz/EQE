@@ -11,6 +11,15 @@ __pycache__/
 .bbl
 .aux
 .fdb_latexmk
+*.log
+*.fls
+*.bbl
+*.aux
+*.fdb_latexmk
+*.nav
+*.out
+*.snm
+*.toc
 tmp/
 
 
