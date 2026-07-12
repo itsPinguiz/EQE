@@ -1,4 +1,0 @@
-\beamer@sectionintoc {1}{Metric}{3}{0}{1}
-\beamer@sectionintoc {2}{Benchmark}{7}{0}{2}
-\beamer@sectionintoc {3}{Results}{11}{0}{3}
-\beamer@sectionintoc {4}{Takeaways}{19}{0}{4}

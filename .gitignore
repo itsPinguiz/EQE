@@ -5,21 +5,34 @@ __pycache__/
 *.pyc
 .rooignore
 .claudeignore
-.out
-.log
-.fls
-.bbl
-.aux
-.fdb_latexmk
-*.log
-*.fls
-*.bbl
+
+# LaTeX build artifacts
+*.acn
+*.acr
+*.alg
 *.aux
+*.bbl
+*.bcf
+*.blg
 *.fdb_latexmk
+*.fls
+*.glg
+*.glo
+*.gls
+*.idx
+*.ilg
+*.ind
+*.ist
+*.lof
+*.log
+*.lot
 *.nav
 *.out
+*.run.xml
 *.snm
+*.synctex.gz
 *.toc
+*.vrb
 tmp/
 
 
