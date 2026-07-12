@@ -149,15 +149,17 @@ datasets/
   BSWD/                          # Wisconsin Diagnostic Breast Cancer files
 
 docs/
-  relazione.md                   # technical report and comparative analysis
-  PAPERS_REVIEW.md               # reviewed XAI literature
+  overview.md                    # technical report and comparative analysis
+  papers_review.md               # reviewed XAI literature
   report/TeX/                    # LaTeX report sources
+  report.pdf                     # final project report
+  presentation.pdf               # finap project presentation
 
 results/
-  latest.md                      # latest benchmark output
   archive/                       # previous benchmark outputs
   figures/latest/                # regenerated charts for latest.md
   figures/presentation/          # selected presentation figures
+  SOTA                           # latest benchmark output
 ```
 
 ## Setup
